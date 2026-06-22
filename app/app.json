@@ -1,0 +1,41 @@
+{
+  "expo": {
+    "name": "EspelhoIA",
+    "slug": "espelhoia",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "dark",
+    "splash": {
+      "backgroundColor": "#0a0a0a"
+    },
+    "ios": {
+      "supportsTablet": false,
+      "bundleIdentifier": "com.espelhoia.app",
+      "infoPlist": {
+        "NSCameraUsageDescription": "O EspelhoIA usa a câmera para avaliar seu look e dar feedback personalizado.",
+        "NSMicrophoneUsageDescription": "Necessário para acessar a câmera no iOS."
+      }
+    },
+    "android": {
+      "adaptiveIcon": {
+        "backgroundColor": "#0a0a0a"
+      },
+      "package": "com.espelhoia.app",
+      "permissions": ["android.permission.CAMERA"]
+    },
+    "plugins": [
+      "expo-router",
+      [
+        "expo-camera",
+        {
+          "cameraPermission": "O EspelhoIA usa a câmera para avaliar seu look."
+        }
+      ]
+    ],
+    "scheme": "espelhoia",
+    "experiments": {
+      "typedRoutes": true
+    }
+  }
+}
