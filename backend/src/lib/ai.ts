@@ -8,8 +8,10 @@ import {
 import { SYSTEM_PROMPT, buildUserPromptText } from "./promptBuilder";
 
 // Modelo da BUSCA de recomendações (grounding com Google Search).
-// Usamos a família Gemini 3.x: grounding mais barato (US$14/1k + 5k/mês grátis).
-const SEARCH_MODEL = process.env.GEMINI_SEARCH_MODEL || "gemini-3-flash-preview";
+// gemini-2.5-flash é estável e suporta grounding (~$35/1k chamadas).
+// Para tentar a versão mais barata, defina GEMINI_SEARCH_MODEL=gemini-3-flash-preview
+// no .env (Gemini 3.x preview: $14/1k + 5k/mês grátis, mas pode dar 503).
+const SEARCH_MODEL = process.env.GEMINI_SEARCH_MODEL || "gemini-2.5-flash";
 
 // Modelo do Gemini — pode ser sobrescrito por GEMINI_MODEL no .env.
 const MODEL = process.env.GEMINI_MODEL || "gemini-2.5-flash";
