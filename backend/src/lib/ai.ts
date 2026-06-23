@@ -234,7 +234,8 @@ export async function findSuggestions(
 Perfil: ocasião ${perfil.ocasiao}, estilo ${perfil.estilo || "não informado"}, formalidade ${perfil.formalidade}, cores que gosta: ${perfil.cores_que_gosta.join(", ") || "não informado"}.
 Use a busca do Google para encontrar ${limit} peças de roupa/acessórios REAIS à venda online que COMBINEM e complementem esse look (lojas do Brasil de preferência).
 Responda APENAS com um array JSON, sem texto extra, no formato:
-[{"nome":"...","descricao":"... (1 frase de por que combina)","loja":"...","preco":"R$ ... (se souber)","url":"https://link-real-do-produto"}]`;
+[{"nome":"...","descricao":"... (1 frase de por que combina)","loja":"...","preco":"R$ ... (se souber)","imagem":"https://url-da-imagem-do-produto (se encontrar uma image url valida, og:image ou similar; caso contrario omita)"}]
+Nao inclua o campo "url" — sera gerado depois.`;
 
   const response = await ai.models.generateContent({
     model: SEARCH_MODEL,
@@ -261,13 +262,21 @@ Responda APENAS com um array JSON, sem texto extra, no formato:
     return [];
   }
 
-  return parsed.slice(0, limit).map((p) => ({
-    nome: String(p?.nome ?? "").slice(0, 120),
-    descricao: String(p?.descricao ?? "").slice(0, 300),
-    loja: String(p?.loja ?? "").slice(0, 80),
-    preco: p?.preco ? String(p.preco).slice(0, 40) : undefined,
-    url: typeof p?.url === "string" ? p.url : undefined,
-    imagem: typeof p?.imagem === "string" ? p.imagem : undefined,
-    patrocinado: false,
-  }));
+  return parsed.slice(0, limit).map((p) => {
+    const nome = String(p?.nome ?? "").slice(0, 120);
+    const loja = String(p?.loja ?? "").slice(0, 80);
+    // URL do Gemini grounding e instavel (redirect que expira / 404).
+    // Em vez disso, manda o usuario direto pro Google Shopping com o termo de busca.
+    const query = encodeURIComponent(`${nome} ${loja}`.trim());
+    const url = `https://www.google.com/search?tbm=shop&q=${query}`;
+    return {
+      nome,
+      descricao: String(p?.descricao ?? "").slice(0, 300),
+      loja,
+      preco: p?.preco ? String(p.preco).slice(0, 40) : undefined,
+      url,
+      imagem: typeof p?.imagem === "string" && p.imagem.startsWith("http") ? p.imagem : undefined,
+      patrocinado: false,
+    };
+  });
 }

@@ -6,6 +6,7 @@ import {
   TouchableOpacity,
   ActivityIndicator,
   Linking,
+  Image,
 } from "react-native";
 import { speak } from "../src/services/voice";
 import { useAppStore } from "../src/state/useAppStore";
@@ -129,20 +130,31 @@ function SuggestionCard({ item }: { item: SuggestionItem }) {
       accessibilityLabel={`${item.nome}${item.patrocinado ? ", patrocinado" : ""}. ${item.descricao}`}
       accessibilityRole={item.url ? "link" : "text"}
     >
-      <View style={styles.suggestionHeader}>
-        <Text style={styles.suggestionNome} numberOfLines={2}>{item.nome}</Text>
-        {item.patrocinado && (
-          <View style={styles.sponsoredBadge}>
-            <Text style={styles.sponsoredText}>Patrocinado</Text>
+      <View style={styles.suggestionRow}>
+        {item.imagem ? (
+          <Image source={{ uri: item.imagem }} style={styles.suggestionImage} />
+        ) : (
+          <View style={[styles.suggestionImage, styles.suggestionImagePlaceholder]}>
+            <Text style={styles.suggestionImageEmoji}>👕</Text>
           </View>
         )}
+        <View style={styles.suggestionInfo}>
+          <View style={styles.suggestionHeader}>
+            <Text style={styles.suggestionNome} numberOfLines={2}>{item.nome}</Text>
+            {item.patrocinado && (
+              <View style={styles.sponsoredBadge}>
+                <Text style={styles.sponsoredText}>Patrocinado</Text>
+              </View>
+            )}
+          </View>
+          <Text style={styles.suggestionDescricao} numberOfLines={3}>{item.descricao}</Text>
+          <View style={styles.suggestionFooter}>
+            {item.loja ? <Text style={styles.suggestionLoja}>{item.loja}</Text> : null}
+            {item.preco ? <Text style={styles.suggestionPreco}>{item.preco}</Text> : null}
+          </View>
+        </View>
       </View>
-      <Text style={styles.suggestionDescricao} numberOfLines={3}>{item.descricao}</Text>
-      <View style={styles.suggestionFooter}>
-        {item.loja ? <Text style={styles.suggestionLoja}>{item.loja}</Text> : null}
-        {item.preco ? <Text style={styles.suggestionPreco}>{item.preco}</Text> : null}
-      </View>
-      {item.url && <Text style={styles.verProduto}>Ver produto →</Text>}
+      {item.url && <Text style={styles.verProduto}>Ver no Google Shopping →</Text>}
     </TouchableOpacity>
   );
 }
@@ -265,10 +277,34 @@ const styles = StyleSheet.create({
     backgroundColor: COLORS.surfaceElevated,
     borderRadius: 12,
     padding: SPACING.md,
-    gap: SPACING.xs,
+    gap: SPACING.sm,
     borderWidth: 1,
     borderColor: COLORS.border,
     marginTop: SPACING.sm,
+  },
+  suggestionRow: {
+    flexDirection: "row",
+    gap: SPACING.md,
+    alignItems: "flex-start",
+  },
+  suggestionImage: {
+    width: 72,
+    height: 72,
+    borderRadius: 8,
+    backgroundColor: COLORS.surface,
+  },
+  suggestionImagePlaceholder: {
+    alignItems: "center",
+    justifyContent: "center",
+    borderWidth: 1,
+    borderColor: COLORS.border,
+  },
+  suggestionImageEmoji: {
+    fontSize: 32,
+  },
+  suggestionInfo: {
+    flex: 1,
+    gap: SPACING.xs,
   },
   suggestionHeader: {
     flexDirection: "row",
