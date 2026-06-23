@@ -23,14 +23,26 @@ export async function fetchSuggestions(
   descricao_look: string,
   perfil: StyleProfile
 ): Promise<SuggestionItem[]> {
-  const response = await fetch(SUGGESTIONS_ENDPOINT, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ descricao_look, perfil }),
-  });
+  try {
+    console.log("[suggestions] URL:", SUGGESTIONS_ENDPOINT, "descricao:", descricao_look);
+    const response = await fetch(SUGGESTIONS_ENDPOINT, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ descricao_look, perfil }),
+    });
+    console.log("[suggestions] status:", response.status);
 
-  if (!response.ok) return [];
+    if (!response.ok) {
+      const txt = await response.text().catch(() => "");
+      console.log("[suggestions] erro body:", txt.slice(0, 300));
+      return [];
+    }
 
-  const data = await response.json().catch(() => ({}));
-  return (data?.sugestoes as SuggestionItem[]) ?? [];
+    const data = await response.json().catch(() => ({}));
+    console.log("[suggestions] qtd:", data?.sugestoes?.length);
+    return (data?.sugestoes as SuggestionItem[]) ?? [];
+  } catch (err) {
+    console.log("[suggestions] exception:", String(err));
+    return [];
+  }
 }

@@ -19,6 +19,7 @@ import { useTensorflowModel } from "react-native-fast-tflite";
 import { Worklets, useSharedValue } from "react-native-worklets-core";
 import * as ImageManipulator from "expo-image-manipulator";
 import { useRouter } from "expo-router";
+import { useIsFocused } from "@react-navigation/native";
 import { useAppStore } from "../src/state/useAppStore";
 import { evaluateLook, fetchSuggestions } from "../src/services/api";
 import { speak } from "../src/services/voice";
@@ -162,6 +163,8 @@ function Screen({
   setIsFetchingSuggestions,
   router,
 }: any) {
+  const isFocused = useIsFocused();
+
   const captureAndEvaluate = useCallback(async () => {
     setMode("evaluating");
     setIsEvaluating(true);
@@ -298,7 +301,7 @@ function Screen({
         ref={cameraRef}
         style={StyleSheet.absoluteFill}
         device={device}
-        isActive={true}
+        isActive={isFocused}
         photo={true}
         frameProcessor={frameProcessor}
       />
