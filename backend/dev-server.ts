@@ -2,7 +2,8 @@
 // Uso: npm run dev:local  (porta 3000). Para produção continua usando Vercel.
 import "dotenv/config";
 import { createServer } from "node:http";
-import handler from "./api/evaluate";
+import evaluateHandler from "./api/evaluate";
+import speakHandler from "./api/speak";
 
 const PORT = Number(process.env.PORT ?? 3000);
 
@@ -26,8 +27,14 @@ const server = createServer(async (req, res) => {
   res.setHeader("Access-Control-Allow-Methods", "POST, OPTIONS");
   res.setHeader("Access-Control-Allow-Headers", "Content-Type");
 
-  // Só temos uma rota: /api/evaluate
-  if (!req.url?.startsWith("/api/evaluate")) {
+  // Rotas: /api/evaluate e /api/speak
+  const handler = req.url?.startsWith("/api/evaluate")
+    ? evaluateHandler
+    : req.url?.startsWith("/api/speak")
+    ? speakHandler
+    : null;
+
+  if (!handler) {
     res.statusCode = 404;
     res.end(JSON.stringify({ error: "Rota não encontrada" }));
     return;
