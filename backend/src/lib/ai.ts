@@ -1,6 +1,15 @@
 import { GoogleGenAI } from "@google/genai";
-import { EvaluationResultSchema, StyleProfile, EvaluationResult } from "./schema";
+import {
+  EvaluationResultSchema,
+  StyleProfile,
+  EvaluationResult,
+  SuggestionItem,
+} from "./schema";
 import { SYSTEM_PROMPT, buildUserPromptText } from "./promptBuilder";
+
+// Modelo da BUSCA de recomendações (grounding com Google Search).
+// Usamos a família Gemini 3.x: grounding mais barato (US$14/1k + 5k/mês grátis).
+const SEARCH_MODEL = process.env.GEMINI_SEARCH_MODEL || "gemini-3-flash-preview";
 
 // Modelo do Gemini — pode ser sobrescrito por GEMINI_MODEL no .env.
 const MODEL = process.env.GEMINI_MODEL || "gemini-2.5-flash";
@@ -28,6 +37,7 @@ function mockEvaluation(perfil: StyleProfile): EvaluationResult {
       "Experimentar um calçado mais alinhado à ocasião",
     ],
     adequacao_ocasiao: "adequado",
+    descricao_look: "camiseta clara, calça jeans e tênis branco",
   };
 }
 
@@ -181,4 +191,81 @@ export async function* speakStream(text: string): AsyncGenerator<Buffer> {
     )?.inlineData?.data;
     if (data) yield Buffer.from(data, "base64");
   }
+}
+
+function mockSuggestions(): SuggestionItem[] {
+  return [
+    {
+      nome: "Jaqueta jeans clara",
+      descricao: "Uma jaqueta jeans clara dá um toque casual e combina com o look.",
+      loja: "Exemplo Store",
+      preco: "R$ 189",
+      url: "https://example.com/jaqueta-jeans",
+      patrocinado: false,
+    },
+    {
+      nome: "Tênis branco clean",
+      descricao: "Tênis branco minimalista para equilibrar o visual.",
+      loja: "Exemplo Store",
+      preco: "R$ 229",
+      url: "https://example.com/tenis-branco-clean",
+      patrocinado: false,
+    },
+  ];
+}
+
+// Busca roupas que combinam com o look usando Gemini + Google Search (grounding).
+// Retorna apenas os itens ORGÂNICOS (os patrocinados são mesclados no endpoint).
+export async function findSuggestions(
+  descricaoLook: string,
+  perfil: StyleProfile,
+  limit = 4
+): Promise<SuggestionItem[]> {
+  if (MOCK_ENABLED) {
+    await new Promise((r) => setTimeout(r, 600));
+    return mockSuggestions().slice(0, limit);
+  }
+
+  const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
+
+  const prompt = `Você é um(a) personal stylist. A pessoa está usando: ${descricaoLook}.
+Perfil: ocasião ${perfil.ocasiao}, estilo ${perfil.estilo || "não informado"}, formalidade ${perfil.formalidade}, cores que gosta: ${perfil.cores_que_gosta.join(", ") || "não informado"}.
+Use a busca do Google para encontrar ${limit} peças de roupa/acessórios REAIS à venda online que COMBINEM e complementem esse look (lojas do Brasil de preferência).
+Responda APENAS com um array JSON, sem texto extra, no formato:
+[{"nome":"...","descricao":"... (1 frase de por que combina)","loja":"...","preco":"R$ ... (se souber)","url":"https://link-real-do-produto"}]`;
+
+  const response = await ai.models.generateContent({
+    model: SEARCH_MODEL,
+    contents: [{ role: "user", parts: [{ text: prompt }] }],
+    config: {
+      tools: [{ googleSearch: {} }],
+    },
+  });
+
+  const raw = (response.text || "")
+    .replace(/```json\s*/gi, "")
+    .replace(/```/g, "")
+    .trim();
+
+  // Extrai o primeiro array JSON do texto (grounding às vezes adiciona prosa)
+  const start = raw.indexOf("[");
+  const end = raw.lastIndexOf("]");
+  if (start === -1 || end === -1 || end <= start) return [];
+
+  let parsed: any[];
+  try {
+    parsed = JSON.parse(raw.slice(start, end + 1));
+  } catch {
+    return [];
+  }
+
+  return parsed.slice(0, limit).map((p) => ({
+    nome: String(p?.nome ?? "").slice(0, 120),
+    descricao: String(p?.descricao ?? "").slice(0, 300),
+    loja: String(p?.loja ?? "").slice(0, 80),
+    preco: p?.preco ? String(p.preco).slice(0, 40) : undefined,
+    url: typeof p?.url === "string" ? p.url : undefined,
+    imagem: typeof p?.imagem === "string" ? p.imagem : undefined,
+    patrocinado: false,
+  }));
 }

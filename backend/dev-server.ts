@@ -4,6 +4,7 @@ import "dotenv/config";
 import { createServer } from "node:http";
 import evaluateHandler from "./api/evaluate";
 import speakHandler from "./api/speak";
+import suggestionsHandler from "./api/suggestions";
 
 const PORT = Number(process.env.PORT ?? 3000);
 
@@ -32,6 +33,8 @@ const server = createServer(async (req, res) => {
     ? evaluateHandler
     : req.url?.startsWith("/api/speak")
     ? speakHandler
+    : req.url?.startsWith("/api/suggestions")
+    ? suggestionsHandler
     : null;
 
   if (!handler) {
@@ -40,25 +43,24 @@ const server = createServer(async (req, res) => {
     return;
   }
 
-  // Shim mínimo da interface VercelResponse usada pelo handler
-  const shim = {
-    status(code: number) {
-      res.statusCode = code;
-      return shim;
-    },
-    json(data: unknown) {
-      res.setHeader("Content-Type", "application/json");
-      res.end(JSON.stringify(data));
-      return shim;
-    },
-    end() {
-      res.end();
-      return shim;
-    },
+  // Aumenta o res nativo do Node com os helpers que os handlers da Vercel usam
+  // (status/json). Assim setHeader/write/end nativos seguem funcionando.
+  const vres: any = res;
+  vres.status = (code: number) => {
+    res.statusCode = code;
+    return vres;
+  };
+  vres.json = (data: unknown) => {
+    res.setHeader("Content-Type", "application/json");
+    res.end(JSON.stringify(data));
+    return vres;
   };
 
-  const vReq = { method: req.method, body, headers: req.headers, query: {} };
-  await handler(vReq as never, shim as never);
+  const query = Object.fromEntries(
+    new URL(req.url ?? "/", `http://localhost:${PORT}`).searchParams
+  );
+  const vReq = { method: req.method, body, headers: req.headers, query };
+  await handler(vReq as never, vres as never);
 });
 
 server.listen(PORT, () => {
