@@ -6,7 +6,7 @@ import { SYSTEM_PROMPT, buildUserPromptText } from "./promptBuilder";
 const MODEL = process.env.GEMINI_MODEL || "gemini-2.5-flash";
 
 // Modelo e voz para a narração (TTS neural).
-const TTS_MODEL = process.env.GEMINI_TTS_MODEL || "gemini-3.1-flash-tts-preview";
+const TTS_MODEL = process.env.GEMINI_TTS_MODEL || "gemini-2.5-flash-preview-tts";
 const TTS_VOICE = process.env.GEMINI_TTS_VOICE || "Vindemiatrix"; // voz gentil/natural
 const TTS_TEMPERATURE = Number(process.env.GEMINI_TTS_TEMPERATURE ?? 1.2);
 const TTS_RATE = 24000; // Gemini TTS devolve PCM 16-bit mono a 24kHz
