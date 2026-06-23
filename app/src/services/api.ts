@@ -1,5 +1,5 @@
-import { EVALUATE_ENDPOINT } from "../constants";
-import { StyleProfile, EvaluationResult } from "../constants/types";
+import { EVALUATE_ENDPOINT, SUGGESTIONS_ENDPOINT } from "../constants";
+import { StyleProfile, EvaluationResult, SuggestionItem } from "../constants/types";
 
 export async function evaluateLook(
   imageBase64: string,
@@ -17,4 +17,20 @@ export async function evaluateLook(
   }
 
   return response.json() as Promise<EvaluationResult>;
+}
+
+export async function fetchSuggestions(
+  descricao_look: string,
+  perfil: StyleProfile
+): Promise<SuggestionItem[]> {
+  const response = await fetch(SUGGESTIONS_ENDPOINT, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ descricao_look, perfil }),
+  });
+
+  if (!response.ok) return [];
+
+  const data = await response.json().catch(() => ({}));
+  return (data?.sugestoes as SuggestionItem[]) ?? [];
 }

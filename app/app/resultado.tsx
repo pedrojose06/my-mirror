@@ -4,11 +4,13 @@ import {
   Text,
   ScrollView,
   TouchableOpacity,
+  ActivityIndicator,
+  Linking,
 } from "react-native";
 import { speak } from "../src/services/voice";
 import { useAppStore } from "../src/state/useAppStore";
 import { COLORS, FONT_SIZE, SPACING } from "../src/constants";
-import { AdequacaoOcasiao } from "../src/constants/types";
+import { AdequacaoOcasiao, SuggestionItem } from "../src/constants/types";
 
 const ADEQUACAO_COLOR: Record<AdequacaoOcasiao, string> = {
   "ótimo": COLORS.success,
@@ -19,6 +21,8 @@ const ADEQUACAO_COLOR: Record<AdequacaoOcasiao, string> = {
 
 export default function ResultadoScreen() {
   const lastResult = useAppStore((s) => s.lastResult);
+  const suggestions = useAppStore((s) => s.suggestions);
+  const isFetchingSuggestions = useAppStore((s) => s.isFetchingSuggestions);
 
   if (!lastResult) {
     return (
@@ -81,7 +85,7 @@ export default function ResultadoScreen() {
         ))}
       </View>
 
-      {/* Sugestões */}
+      {/* Sugestões de ajuste */}
       <View style={styles.section} accessibilityLabel="Sugestões de ajuste">
         <Text style={styles.sectionLabel}>💡  SUGESTÕES</Text>
         {lastResult.sugestoes.map((item, i) => (
@@ -91,7 +95,55 @@ export default function ResultadoScreen() {
           </View>
         ))}
       </View>
+
+      {/* Recomendações de roupas */}
+      {(isFetchingSuggestions || suggestions.length > 0) && (
+        <View style={styles.section} accessibilityLabel="Recomendações de roupas">
+          <Text style={styles.sectionLabel}>🛍  COMBINE COM O SEU LOOK</Text>
+          {isFetchingSuggestions && suggestions.length === 0 ? (
+            <View style={styles.loadingRow}>
+              <ActivityIndicator size="small" color={COLORS.accent} />
+              <Text style={styles.loadingText}>Buscando sugestões…</Text>
+            </View>
+          ) : (
+            suggestions.map((item, i) => (
+              <SuggestionCard key={i} item={item} />
+            ))
+          )}
+        </View>
+      )}
     </ScrollView>
+  );
+}
+
+function SuggestionCard({ item }: { item: SuggestionItem }) {
+  const handlePress = () => {
+    if (item.url) Linking.openURL(item.url);
+  };
+
+  return (
+    <TouchableOpacity
+      style={styles.suggestionCard}
+      onPress={handlePress}
+      disabled={!item.url}
+      accessibilityLabel={`${item.nome}${item.patrocinado ? ", patrocinado" : ""}. ${item.descricao}`}
+      accessibilityRole={item.url ? "link" : "text"}
+    >
+      <View style={styles.suggestionHeader}>
+        <Text style={styles.suggestionNome} numberOfLines={2}>{item.nome}</Text>
+        {item.patrocinado && (
+          <View style={styles.sponsoredBadge}>
+            <Text style={styles.sponsoredText}>Patrocinado</Text>
+          </View>
+        )}
+      </View>
+      <Text style={styles.suggestionDescricao} numberOfLines={3}>{item.descricao}</Text>
+      <View style={styles.suggestionFooter}>
+        {item.loja ? <Text style={styles.suggestionLoja}>{item.loja}</Text> : null}
+        {item.preco ? <Text style={styles.suggestionPreco}>{item.preco}</Text> : null}
+      </View>
+      {item.url && <Text style={styles.verProduto}>Ver produto →</Text>}
+    </TouchableOpacity>
   );
 }
 
@@ -198,5 +250,73 @@ const styles = StyleSheet.create({
     fontSize: FONT_SIZE.md,
     lineHeight: FONT_SIZE.md * 1.5,
     flex: 1,
+  },
+  loadingRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: SPACING.sm,
+    paddingVertical: SPACING.sm,
+  },
+  loadingText: {
+    color: COLORS.textSecondary,
+    fontSize: FONT_SIZE.sm,
+  },
+  suggestionCard: {
+    backgroundColor: COLORS.surfaceElevated,
+    borderRadius: 12,
+    padding: SPACING.md,
+    gap: SPACING.xs,
+    borderWidth: 1,
+    borderColor: COLORS.border,
+    marginTop: SPACING.sm,
+  },
+  suggestionHeader: {
+    flexDirection: "row",
+    alignItems: "flex-start",
+    gap: SPACING.sm,
+    justifyContent: "space-between",
+  },
+  suggestionNome: {
+    color: COLORS.textPrimary,
+    fontSize: FONT_SIZE.md,
+    fontWeight: "600",
+    flex: 1,
+  },
+  sponsoredBadge: {
+    backgroundColor: COLORS.accentDim,
+    borderRadius: 4,
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+  },
+  sponsoredText: {
+    color: COLORS.background,
+    fontSize: FONT_SIZE.xs,
+    fontWeight: "700",
+    letterSpacing: 0.5,
+  },
+  suggestionDescricao: {
+    color: COLORS.textSecondary,
+    fontSize: FONT_SIZE.sm,
+    lineHeight: FONT_SIZE.sm * 1.5,
+  },
+  suggestionFooter: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    marginTop: SPACING.xs,
+  },
+  suggestionLoja: {
+    color: COLORS.textMuted,
+    fontSize: FONT_SIZE.xs,
+  },
+  suggestionPreco: {
+    color: COLORS.accent,
+    fontSize: FONT_SIZE.sm,
+    fontWeight: "700",
+  },
+  verProduto: {
+    color: COLORS.accentDim,
+    fontSize: FONT_SIZE.xs,
+    marginTop: SPACING.xs,
   },
 });
