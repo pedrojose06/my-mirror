@@ -3,7 +3,7 @@ import { z } from "zod";
 // Perfil de estilo do usuário (enviado pelo app em cada chamada)
 export const StyleProfileSchema = z.object({
   ocasiao: z.enum(["trabalho", "casual", "evento", "esporte"]),
-  estilo: z.string().min(1).max(100), // ex: "minimalista", "despojado", "clássico"
+  estilo: z.string().max(100).default(""), // ex: "minimalista", "despojado"; pode ficar vazio
   cores_que_gosta: z.array(z.string()).max(10).default([]),
   cores_que_evita: z.array(z.string()).max(10).default([]),
   formalidade: z.enum(["baixa", "média", "alta"]),

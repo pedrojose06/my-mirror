@@ -25,7 +25,7 @@ export function buildUserPromptText(perfil: StyleProfile): string {
   const perfilTexto = `
 Perfil de estilo do usuário:
 - Ocasião: ${perfil.ocasiao}
-- Estilo pessoal: ${perfil.estilo}
+- Estilo pessoal: ${perfil.estilo && perfil.estilo.trim() ? perfil.estilo : "não informado"}
 - Cores que gosta: ${perfil.cores_que_gosta.length > 0 ? perfil.cores_que_gosta.join(", ") : "não informado"}
 - Cores que evita: ${perfil.cores_que_evita.length > 0 ? perfil.cores_que_evita.join(", ") : "não informado"}
 - Nível de formalidade desejado: ${perfil.formalidade}
