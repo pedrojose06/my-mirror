@@ -7,7 +7,8 @@ const MODEL = process.env.GEMINI_MODEL || "gemini-2.5-flash";
 
 // Modelo e voz para a narração (TTS neural).
 const TTS_MODEL = process.env.GEMINI_TTS_MODEL || "gemini-2.5-flash-preview-tts";
-const TTS_VOICE = process.env.GEMINI_TTS_VOICE || "Aoede"; // voz calorosa/natural
+const TTS_VOICE = process.env.GEMINI_TTS_VOICE || "Vindemiatrix"; // voz gentil/natural
+const TTS_TEMPERATURE = Number(process.env.GEMINI_TTS_TEMPERATURE ?? 1.2);
 const TTS_RATE = 24000; // Gemini TTS devolve PCM 16-bit mono a 24kHz
 
 // Modo mock: devolve avaliação falsa sem chamar a API (para testar sem custo/sem key).
@@ -118,13 +119,15 @@ export async function speakText(text: string): Promise<string> {
 
   const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
 
-  // Prefixo de estilo: deixa a entrega mais calorosa e humana.
-  const prompt = `Leia em português do Brasil, com tom caloroso, natural e amigável, como um consultor de estilo conversando com a pessoa: ${text}`;
+  // Prefixo de estilo (equivale às "Director's notes" do AI Studio):
+  // sorriso na voz, tom caloroso/gentil, ritmo natural de conversa.
+  const prompt = `Leia em português do Brasil, com um sorriso na voz, tom caloroso e gentil, em ritmo natural de conversa, como um consultor de estilo falando diretamente com a pessoa: ${text}`;
 
   const response = await ai.models.generateContent({
     model: TTS_MODEL,
     contents: [{ role: "user", parts: [{ text: prompt }] }],
     config: {
+      temperature: TTS_TEMPERATURE,
       responseModalities: ["AUDIO"],
       speechConfig: {
         voiceConfig: {
