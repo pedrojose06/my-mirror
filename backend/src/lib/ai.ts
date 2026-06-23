@@ -149,3 +149,36 @@ export async function speakText(text: string): Promise<string> {
   const wav = pcmToWav(pcm, TTS_RATE);
   return wav.toString("base64");
 }
+
+// Frequência do PCM exposta para o cabeçalho WAV de streaming.
+export const TTS_SAMPLE_RATE = TTS_RATE;
+
+// Gera a narração em STREAM: vai produzindo os pedaços de PCM conforme o
+// Gemini sintetiza, para o app começar a tocar antes do áudio terminar.
+export async function* speakStream(text: string): AsyncGenerator<Buffer> {
+  if (!process.env.GEMINI_API_KEY) {
+    throw new Error("GEMINI_API_KEY não configurada");
+  }
+
+  const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
+  const prompt = `Leia em português do Brasil, com um sorriso na voz, tom caloroso e gentil, em ritmo natural de conversa, como um consultor de estilo falando diretamente com a pessoa: ${text}`;
+
+  const stream = await ai.models.generateContentStream({
+    model: TTS_MODEL,
+    contents: [{ role: "user", parts: [{ text: prompt }] }],
+    config: {
+      temperature: TTS_TEMPERATURE,
+      responseModalities: ["AUDIO"],
+      speechConfig: {
+        voiceConfig: { prebuiltVoiceConfig: { voiceName: TTS_VOICE } },
+      },
+    },
+  });
+
+  for await (const chunk of stream) {
+    const data = chunk.candidates?.[0]?.content?.parts?.find(
+      (p: any) => p.inlineData?.data
+    )?.inlineData?.data;
+    if (data) yield Buffer.from(data, "base64");
+  }
+}
