@@ -20,7 +20,8 @@ Diretrizes:
 - Se a imagem não mostrar uma pessoa ou roupa claramente, retorne nota 0 e resumo_voz explicando o problema
 - Seja honesto(a) mas construtivo(a). Nunca cruel.`;
 
-export function buildUserMessage(perfil: StyleProfile, imageBase64: string) {
+// Monta o texto do prompt do usuário (sem a imagem) a partir do perfil de estilo.
+export function buildUserPromptText(perfil: StyleProfile): string {
   const perfilTexto = `
 Perfil de estilo do usuário:
 - Ocasião: ${perfil.ocasiao}
@@ -31,21 +32,5 @@ Perfil de estilo do usuário:
 ${perfil.observacoes_extras ? `- Observações extras: ${perfil.observacoes_extras}` : ""}
 `.trim();
 
-  return {
-    role: "user" as const,
-    content: [
-      {
-        type: "image" as const,
-        source: {
-          type: "base64" as const,
-          media_type: "image/jpeg" as const,
-          data: imageBase64,
-        },
-      },
-      {
-        type: "text" as const,
-        text: `Avalie o look desta pessoa com base no perfil abaixo. Responda APENAS com o JSON conforme instruído.\n\n${perfilTexto}`,
-      },
-    ],
-  };
+  return `Avalie o look desta pessoa com base no perfil abaixo. Responda APENAS com o JSON conforme instruído.\n\n${perfilTexto}`;
 }

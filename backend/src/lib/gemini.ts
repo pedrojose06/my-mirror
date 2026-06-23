@@ -1,14 +1,13 @@
-import Anthropic from "@anthropic-ai/sdk";
+import { GoogleGenAI } from "@google/genai";
 import { EvaluationResultSchema, StyleProfile, EvaluationResult } from "./schema";
-import { SYSTEM_PROMPT, buildUserMessage } from "./promptBuilder";
+import { SYSTEM_PROMPT, buildUserPromptText } from "./promptBuilder";
 
-const client = new Anthropic({
-  apiKey: process.env.ANTHROPIC_API_KEY,
-});
+// Modelo do Gemini — pode ser sobrescrito por GEMINI_MODEL no .env.
+const MODEL = process.env.GEMINI_MODEL || "gemini-3.1-flash";
 
-// Modo mock: devolve avaliação falsa sem chamar a API (para testar sem gastar créditos).
-// Ativado por MOCK_AI=true ou quando não há ANTHROPIC_API_KEY configurada.
-const MOCK_ENABLED = process.env.MOCK_AI === "true" || !process.env.ANTHROPIC_API_KEY;
+// Modo mock: devolve avaliação falsa sem chamar a API (para testar sem custo/sem key).
+// Ativado por MOCK_AI=true ou quando não há GEMINI_API_KEY configurada.
+const MOCK_ENABLED = process.env.MOCK_AI === "true" || !process.env.GEMINI_API_KEY;
 
 function mockEvaluation(perfil: StyleProfile): EvaluationResult {
   return {
@@ -36,22 +35,34 @@ export async function evaluateLook(
     return mockEvaluation(perfil);
   }
 
-  const userMessage = buildUserMessage(perfil, imageBase64);
+  const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
 
-  const response = await client.messages.create({
-    model: "claude-sonnet-4-6",
-    max_tokens: 512,
-    system: SYSTEM_PROMPT,
-    messages: [userMessage],
+  const response = await ai.models.generateContent({
+    model: MODEL,
+    config: {
+      systemInstruction: SYSTEM_PROMPT,
+      // Pede ao Gemini para responder JSON puro — evita backticks/markdown
+      responseMimeType: "application/json",
+      maxOutputTokens: 512,
+    },
+    contents: [
+      {
+        role: "user",
+        parts: [
+          { inlineData: { mimeType: "image/jpeg", data: imageBase64 } },
+          { text: buildUserPromptText(perfil) },
+        ],
+      },
+    ],
   });
 
-  const textBlock = response.content.find((b) => b.type === "text");
-  if (!textBlock || textBlock.type !== "text") {
-    throw new Error("Resposta da IA não contém bloco de texto");
+  const rawText = response.text;
+  if (!rawText) {
+    throw new Error("Resposta da IA não contém texto");
   }
 
-  // Remove possíveis backticks de markdown (safety net)
-  const rawJson = textBlock.text
+  // Safety net: remove backticks de markdown caso apareçam
+  const rawJson = rawText
     .replace(/```json\s*/gi, "")
     .replace(/```/g, "")
     .trim();
