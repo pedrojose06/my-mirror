@@ -468,7 +468,7 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     alignItems: "center",
   },
-  captureButtonText: { color: COLORS.background, fontSize: FONT_SIZE.md, fontWeight: "800", letterSpacing: 2 },
+  captureButtonText: { color: "#FFFFFF", fontSize: FONT_SIZE.md, fontWeight: "800", letterSpacing: 2 },
   cancelButton: { backgroundColor: "rgba(10,10,10,0.85)", borderWidth: 1, borderColor: COLORS.border },
   cancelButtonText: { color: COLORS.textPrimary, fontSize: FONT_SIZE.md, fontWeight: "700", letterSpacing: 2 },
   evaluatingIndicator: { alignItems: "center", gap: SPACING.sm },

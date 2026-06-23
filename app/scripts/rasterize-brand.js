@@ -13,16 +13,15 @@ async function main() {
     .png()
     .toFile(path.join(BRAND, "icon.png"));
 
-  // Adaptive icon foreground — 1024x1024 (frame no centro, fundo transparente)
-  // Reusa o isotipo mesmo, Expo lida com o resize de fundo
-  await sharp(path.join(BRAND, "isotipo.svg"))
+  // Adaptive icon foreground — 1024x1024 (frame centralizado, fundo transparente)
+  await sharp(path.join(BRAND, "adaptive-icon.svg"))
     .resize(1024, 1024)
     .png()
     .toFile(path.join(BRAND, "adaptive-icon.png"));
 
-  // Splash screen — proporcao retrato (1242x2208)
-  await sharp(path.join(BRAND, "logotipo.svg"))
-    .resize(1242, 2208)
+  // Splash screen — quadrada (1200x1200), logo centralizado
+  await sharp(path.join(BRAND, "splash.svg"))
+    .resize(1200, 1200)
     .png()
     .toFile(path.join(BRAND, "splash.png"));
 

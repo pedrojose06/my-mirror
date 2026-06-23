@@ -1,21 +1,17 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024" width="1024" height="1024">
-  <rect width="1024" height="1024" fill="#333333"/>
-  <!-- Frame externo (amethyst) -->
-  <g fill="none" stroke="#8A2BE2" stroke-width="36" stroke-linecap="square">
-    <!-- canto sup-esq -->
-    <path d="M 220 360 L 220 220 L 360 220"/>
-    <!-- canto sup-dir -->
-    <path d="M 664 220 L 804 220 L 804 360"/>
-    <!-- canto inf-esq -->
-    <path d="M 220 664 L 220 804 L 360 804"/>
-    <!-- canto inf-dir -->
-    <path d="M 664 804 L 804 804 L 804 664"/>
+  <rect width="1024" height="1024" fill="#EAEAEA"/>
+  <!-- Frame externo (amethyst) — mais centralizado e afastado das bordas -->
+  <g fill="none" stroke="#8A2BE2" stroke-width="40" stroke-linecap="square">
+    <path d="M 330 440 L 330 330 L 440 330"/>
+    <path d="M 584 330 L 694 330 L 694 440"/>
+    <path d="M 330 584 L 330 694 L 440 694"/>
+    <path d="M 584 694 L 694 694 L 694 584"/>
   </g>
-  <!-- Frame interno (off-white, leve, deslocado) -->
-  <g fill="none" stroke="#F8F8F8" stroke-width="24" stroke-linecap="square" opacity="0.9">
-    <path d="M 268 380 L 268 268 L 380 268"/>
-    <path d="M 644 268 L 756 268 L 756 380"/>
-    <path d="M 268 644 L 268 756 L 380 756"/>
-    <path d="M 644 756 L 756 756 L 756 644"/>
+  <!-- Frame interno (charcoal sutil, visivel sobre o cinza claro) -->
+  <g fill="none" stroke="#333333" stroke-width="22" stroke-linecap="square" opacity="0.55">
+    <path d="M 372 458 L 372 372 L 458 372"/>
+    <path d="M 566 372 L 652 372 L 652 458"/>
+    <path d="M 372 566 L 372 652 L 458 652"/>
+    <path d="M 566 652 L 652 652 L 652 566"/>
   </g>
 </svg>
