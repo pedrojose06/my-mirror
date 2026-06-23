@@ -4,6 +4,7 @@ export const API_BASE_URL =
   process.env.EXPO_PUBLIC_API_URL ?? "http://192.168.1.100:3000";
 
 export const EVALUATE_ENDPOINT = `${API_BASE_URL}/api/evaluate`;
+export const SUGGESTIONS_ENDPOINT = `${API_BASE_URL}/api/suggestions`;
 
 // Design tokens
 export const COLORS = {

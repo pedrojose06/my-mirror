@@ -1,6 +1,6 @@
 import { create } from "zustand";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import { StyleProfile, EvaluationResult } from "../constants/types";
+import { StyleProfile, EvaluationResult, SuggestionItem } from "../constants/types";
 
 const PROFILE_KEY = "@espelhoia:profile";
 
@@ -16,18 +16,24 @@ interface AppState {
   profile: StyleProfile;
   lastResult: EvaluationResult | null;
   isEvaluating: boolean;
+  suggestions: SuggestionItem[];
+  isFetchingSuggestions: boolean;
 
   setProfile: (profile: Partial<StyleProfile>) => void;
   saveProfile: () => Promise<void>;
   loadProfile: () => Promise<void>;
   setLastResult: (result: EvaluationResult | null) => void;
   setIsEvaluating: (val: boolean) => void;
+  setSuggestions: (items: SuggestionItem[]) => void;
+  setIsFetchingSuggestions: (val: boolean) => void;
 }
 
 export const useAppStore = create<AppState>((set, get) => ({
   profile: DEFAULT_PROFILE,
   lastResult: null,
   isEvaluating: false,
+  suggestions: [],
+  isFetchingSuggestions: false,
 
   setProfile: (updates) =>
     set((state) => ({ profile: { ...state.profile, ...updates } })),
@@ -47,4 +53,6 @@ export const useAppStore = create<AppState>((set, get) => ({
 
   setLastResult: (result) => set({ lastResult: result }),
   setIsEvaluating: (val) => set({ isEvaluating: val }),
+  setSuggestions: (items) => set({ suggestions: items }),
+  setIsFetchingSuggestions: (val) => set({ isFetchingSuggestions: val }),
 }));

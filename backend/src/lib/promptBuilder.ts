@@ -9,7 +9,8 @@ Você responde EXCLUSIVAMENTE em JSON válido, sem nenhum texto antes ou depois,
   "resumo_voz": "<UMA frase curta e direta, no máximo 110 caracteres, natural para ser lida em voz alta, sem bullets ou formatação>",
   "pontos_fortes": ["<ponto 1>", "<ponto 2>"],
   "sugestoes": ["<sugestão 1>", "<sugestão 2>"],
-  "adequacao_ocasiao": "<um de: ótimo | adequado | parcialmente adequado | inadequado>"
+  "adequacao_ocasiao": "<um de: ótimo | adequado | parcialmente adequado | inadequado>",
+  "descricao_look": "<descrição objetiva das peças e cores vistas, ex: 'camisa azul-marinho, calça jeans escura e tênis branco' — usada para buscar roupas que combinem>"
 }
 
 Diretrizes:

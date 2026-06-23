@@ -15,6 +15,17 @@ export interface EvaluationResult {
   pontos_fortes: string[];
   sugestoes: string[];
   adequacao_ocasiao: "ótimo" | "adequado" | "parcialmente adequado" | "inadequado";
+  descricao_look?: string;
 }
 
 export type AdequacaoOcasiao = EvaluationResult["adequacao_ocasiao"];
+
+export interface SuggestionItem {
+  nome: string;
+  descricao: string;
+  loja: string;
+  preco?: string;
+  url?: string;
+  imagem?: string;
+  patrocinado: boolean;
+}

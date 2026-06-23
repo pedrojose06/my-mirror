@@ -19,8 +19,9 @@ import { useTensorflowModel } from "react-native-fast-tflite";
 import { Worklets, useSharedValue } from "react-native-worklets-core";
 import * as ImageManipulator from "expo-image-manipulator";
 import { useRouter } from "expo-router";
+import { useIsFocused } from "@react-navigation/native";
 import { useAppStore } from "../src/state/useAppStore";
-import { evaluateLook } from "../src/services/api";
+import { evaluateLook, fetchSuggestions } from "../src/services/api";
 import { speak } from "../src/services/voice";
 import { COLORS, FONT_SIZE, SPACING } from "../src/constants";
 
@@ -54,8 +55,15 @@ export default function MirrorScreen() {
   const cameraRef = useRef<Camera>(null);
   const router = useRouter();
 
-  const { profile, lastResult, setLastResult, isEvaluating, setIsEvaluating } =
-    useAppStore();
+  const {
+    profile,
+    lastResult,
+    setLastResult,
+    isEvaluating,
+    setIsEvaluating,
+    setSuggestions,
+    setIsFetchingSuggestions,
+  } = useAppStore();
 
   const [mode, setMode] = useState<Mode>("idle");
   const [poseStatus, setPoseStatus] = useState<PoseStatus>("none");
@@ -123,6 +131,8 @@ export default function MirrorScreen() {
       setLastResult={setLastResult}
       isEvaluating={isEvaluating}
       setIsEvaluating={setIsEvaluating}
+      setSuggestions={setSuggestions}
+      setIsFetchingSuggestions={setIsFetchingSuggestions}
       router={router}
     />
   );
@@ -149,11 +159,16 @@ function Screen({
   setLastResult,
   isEvaluating,
   setIsEvaluating,
+  setSuggestions,
+  setIsFetchingSuggestions,
   router,
 }: any) {
+  const isFocused = useIsFocused();
+
   const captureAndEvaluate = useCallback(async () => {
     setMode("evaluating");
     setIsEvaluating(true);
+    setSuggestions([]);
     try {
       const photo = await cameraRef.current.takePhoto({
         enableShutterSound: false,
@@ -170,6 +185,15 @@ function Screen({
       if (!manipulated.base64) throw new Error("Falha ao processar imagem");
 
       const resultado = await evaluateLook(manipulated.base64, profile);
+
+      // Busca sugestões em paralelo com a voz (não bloqueia o fluxo)
+      if (resultado.descricao_look) {
+        setIsFetchingSuggestions(true);
+        fetchSuggestions(resultado.descricao_look, profile)
+          .then((items) => setSuggestions(items))
+          .finally(() => setIsFetchingSuggestions(false));
+      }
+
       // Mantém o "Analisando..." até a voz começar; aí revela a nota + fala juntos.
       speak(resultado.resumo_voz, () => {
         setLastResult(resultado);
@@ -277,7 +301,7 @@ function Screen({
         ref={cameraRef}
         style={StyleSheet.absoluteFill}
         device={device}
-        isActive={true}
+        isActive={isFocused}
         photo={true}
         frameProcessor={frameProcessor}
       />
