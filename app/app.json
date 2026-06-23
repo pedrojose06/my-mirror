@@ -15,16 +15,20 @@
     },
     "android": {
       "package": "com.espelhoia.app",
-      "permissions": ["android.permission.CAMERA"]
+      "permissions": [
+        "android.permission.CAMERA"
+      ]
     },
     "plugins": [
       "expo-router",
       [
-        "expo-camera",
+        "react-native-vision-camera",
         {
-          "cameraPermission": "O EspelhoIA usa a câmera para avaliar seu look."
+          "cameraPermissionText": "O EspelhoIA usa a câmera para avaliar seu look.",
+          "enableMicrophonePermission": false
         }
-      ]
+      ],
+      "react-native-fast-tflite"
     ],
     "scheme": "espelhoia",
     "experiments": {
