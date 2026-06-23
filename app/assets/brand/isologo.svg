@@ -13,7 +13,7 @@
     <path d="M 108 198 L 108 242 L 152 242"/>
     <path d="M 648 242 L 692 242 L 692 198"/>
   </g>
-  <!-- Texto Lux + ai centralizado -->
+  <!-- Texto Lux (off-white) + ai (amethyst) centralizado -->
   <g transform="translate(400, 160)">
     <text x="-8" y="40"
           font-family="'Goudy Old Style', 'Garamond', 'Hoefler Text', serif"

@@ -19,11 +19,17 @@ async function main() {
     .png()
     .toFile(path.join(BRAND, "adaptive-icon.png"));
 
-  // Splash screen — quadrada (1200x1200), logo centralizado
+  // Splash screen (React, tela cheia) — retrato cheio (1080x2340), composição completa
   await sharp(path.join(BRAND, "splash.svg"))
-    .resize(1200, 1200)
+    .resize(1080, 2340)
     .png()
     .toFile(path.join(BRAND, "splash.png"));
+
+  // Splash nativo (expo-splash-screen) — só o emblema centralizado (800x800)
+  await sharp(path.join(BRAND, "splash-native.svg"))
+    .resize(800, 800)
+    .png()
+    .toFile(path.join(BRAND, "splash-native.png"));
 
   // ISOLOGO pra header (tamanho menor, 800x320)
   await sharp(path.join(BRAND, "isologo.svg"))

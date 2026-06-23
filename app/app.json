@@ -16,10 +16,10 @@
     },
     "android": {
       "package": "com.espelhoia.app",
-      "versionCode": 5,
+      "versionCode": 10,
       "adaptiveIcon": {
         "foregroundImage": "./assets/brand/adaptive-icon.png",
-        "backgroundColor": "#EAEAEA"
+        "backgroundColor": "#8A2BE2"
       },
       "permissions": [
         "android.permission.CAMERA"
@@ -30,10 +30,10 @@
       [
         "expo-splash-screen",
         {
-          "image": "./assets/brand/splash.png",
-          "imageWidth": 1200,
+          "image": "./assets/brand/splash-native.png",
+          "imageWidth": 240,
           "resizeMode": "contain",
-          "backgroundColor": "#EAEAEA"
+          "backgroundColor": "#7d28cf"
         }
       ],
       [

@@ -1,14 +1,14 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024" width="1024" height="1024">
-  <rect width="1024" height="1024" fill="#EAEAEA"/>
-  <!-- Frame externo (amethyst) — mais centralizado e afastado das bordas -->
-  <g fill="none" stroke="#8A2BE2" stroke-width="40" stroke-linecap="square">
+  <rect width="1024" height="1024" fill="#8A2BE2"/>
+  <!-- Frame externo (branco) -->
+  <g fill="none" stroke="#FFFFFF" stroke-width="40" stroke-linecap="square">
     <path d="M 330 440 L 330 330 L 440 330"/>
     <path d="M 584 330 L 694 330 L 694 440"/>
     <path d="M 330 584 L 330 694 L 440 694"/>
     <path d="M 584 694 L 694 694 L 694 584"/>
   </g>
-  <!-- Frame interno (charcoal sutil, visivel sobre o cinza claro) -->
-  <g fill="none" stroke="#333333" stroke-width="22" stroke-linecap="square" opacity="0.55">
+  <!-- Frame interno (cinza claro sutil) -->
+  <g fill="none" stroke="#FFFFFF" stroke-width="22" stroke-linecap="square" opacity="0.45">
     <path d="M 372 458 L 372 372 L 458 372"/>
     <path d="M 566 372 L 652 372 L 652 458"/>
     <path d="M 372 566 L 372 652 L 458 652"/>

@@ -1,0 +1,30 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 800" width="800" height="800">
+  <!-- Fundo transparente: cor roxa vem de splash backgroundColor no app.json -->
+  <!-- Emblema central: círculo + moldura de colchetes + Luxai -->
+  <g transform="translate(400, 400)">
+    <circle cx="0" cy="0" r="270" fill="none" stroke="#F8F8F8" stroke-width="5" opacity="0.85"/>
+    <circle cx="0" cy="0" r="258" fill="none" stroke="#F8F8F8" stroke-width="2" opacity="0.4"/>
+
+    <g fill="none" stroke="#FFFFFF" stroke-width="16" stroke-linecap="square">
+      <path d="M -180 -110 L -180 -180 L -110 -180"/>
+      <path d="M 110 -180 L 180 -180 L 180 -110"/>
+      <path d="M -180 110 L -180 180 L -110 180"/>
+      <path d="M 110 180 L 180 180 L 180 110"/>
+    </g>
+    <g fill="none" stroke="#FFFFFF" stroke-width="9" stroke-linecap="square" opacity="0.5">
+      <path d="M -142 -92 L -142 -142 L -92 -142"/>
+      <path d="M 92 -142 L 142 -142 L 142 -92"/>
+      <path d="M -142 92 L -142 142 L -92 142"/>
+      <path d="M 92 142 L 142 142 L 142 92"/>
+    </g>
+
+    <text x="-6" y="48"
+          font-family="'Goudy Old Style', 'Garamond', 'Hoefler Text', serif"
+          font-size="170" font-weight="400" fill="#FFFFFF"
+          text-anchor="end">Lux</text>
+    <text x="6" y="48"
+          font-family="'Futura', 'Century Gothic', 'Avenir', sans-serif"
+          font-size="170" font-weight="500" fill="#F0F0F0"
+          text-anchor="start">ai</text>
+  </g>
+</svg>
