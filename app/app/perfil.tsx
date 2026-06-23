@@ -202,7 +202,7 @@ const styles = StyleSheet.create({
     fontWeight: "600",
   },
   optionChipTextActive: {
-    color: COLORS.background,
+    color: "#FFFFFF",
   },
   textInput: {
     backgroundColor: COLORS.surface,
@@ -228,7 +228,7 @@ const styles = StyleSheet.create({
     marginTop: SPACING.md,
   },
   saveButtonText: {
-    color: COLORS.background,
+    color: "#FFFFFF",
     fontSize: FONT_SIZE.md,
     fontWeight: "800",
     letterSpacing: 1.5,

@@ -47,7 +47,11 @@ export const OCASIOES = [
   { value: "trabalho", label: "Trabalho" },
   { value: "evento", label: "Evento" },
   { value: "esporte", label: "Esporte" },
+  { value: "outra", label: "Outra" },
 ] as const;
+
+// Valores de ocasião que são presets (qualquer outro = ocasião personalizada "Outra")
+export const OCASIOES_PRESET = ["casual", "trabalho", "evento", "esporte"];
 
 export const FORMALIDADES = [
   { value: "baixa", label: "Descontraído" },

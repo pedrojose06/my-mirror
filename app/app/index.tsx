@@ -21,7 +21,9 @@ import { Worklets, useSharedValue } from "react-native-worklets-core";
 import * as ImageManipulator from "expo-image-manipulator";
 import { useRouter } from "expo-router";
 import { useIsFocused } from "@react-navigation/native";
+import { Ionicons } from "@expo/vector-icons";
 import { LuxaiLoader } from "../src/components/LuxaiLoader";
+import { OccasionWheel } from "../src/components/OccasionWheel";
 import { useAppStore } from "../src/state/useAppStore";
 import { evaluateLook, fetchSuggestions } from "../src/services/api";
 import { speak } from "../src/services/voice";
@@ -317,7 +319,7 @@ function Screen({
           accessibilityLabel="Luxai"
         />
 
-        {/* Topo: nota anterior + trocar câmera */}
+        {/* Topo: nota anterior */}
         <View style={styles.topRow}>
           {lastResult ? (
             <Pressable
@@ -332,25 +334,6 @@ function Screen({
           ) : (
             <View />
           )}
-
-          <View style={styles.topButtons}>
-            <TouchableOpacity
-              style={styles.iconButton}
-              onPress={flipCamera}
-              accessibilityLabel="Trocar câmera"
-              accessibilityRole="button"
-            >
-              <Text style={styles.iconText}>🔄</Text>
-            </TouchableOpacity>
-            <TouchableOpacity
-              style={styles.iconButton}
-              onPress={() => router.push("/perfil")}
-              accessibilityLabel="Configurar meu perfil de estilo"
-              accessibilityRole="button"
-            >
-              <Text style={styles.iconText}>⚙️</Text>
-            </TouchableOpacity>
-          </View>
         </View>
 
         {/* Centro: dica de enquadramento durante o alinhamento */}
@@ -360,30 +343,57 @@ function Screen({
           </View>
         )}
 
-        {/* Base: botão principal / loading */}
+        {/* Base: ícone trocar-câmera | botão principal | ícone config */}
         <View style={styles.captureArea}>
           {mode === "evaluating" ? (
             <View style={styles.evaluatingIndicator} accessibilityLiveRegion="polite">
               <LuxaiLoader size={96} />
               <Text style={styles.evaluatingText}>Analisando seu look…</Text>
             </View>
-          ) : mode === "aligning" ? (
-            <TouchableOpacity
-              style={[styles.captureButton, styles.cancelButton]}
-              onPress={cancelAligning}
-              accessibilityLabel="Cancelar"
-            >
-              <Text style={styles.cancelButtonText}>CANCELAR</Text>
-            </TouchableOpacity>
           ) : (
-            <TouchableOpacity
-              style={styles.captureButton}
-              onPress={startAligning}
-              accessibilityLabel="Avaliar look"
-              accessibilityHint="Aguarda você aparecer de corpo inteiro e captura automaticamente"
-            >
-              <Text style={styles.captureButtonText}>AVALIAR</Text>
-            </TouchableOpacity>
+            <>
+              {mode === "idle" && <OccasionWheel />}
+              <View style={styles.captureRow}>
+              <TouchableOpacity
+                style={styles.sideIcon}
+                onPress={flipCamera}
+                accessibilityLabel="Trocar câmera"
+                accessibilityRole="button"
+                hitSlop={12}
+              >
+                <Ionicons name="camera-reverse-outline" size={30} color="#FFFFFF" />
+              </TouchableOpacity>
+
+              {mode === "aligning" ? (
+                <TouchableOpacity
+                  style={[styles.captureButton, styles.cancelButton]}
+                  onPress={cancelAligning}
+                  accessibilityLabel="Cancelar"
+                >
+                  <Text style={styles.cancelButtonText}>CANCELAR</Text>
+                </TouchableOpacity>
+              ) : (
+                <TouchableOpacity
+                  style={styles.captureButton}
+                  onPress={startAligning}
+                  accessibilityLabel="Avaliar look"
+                  accessibilityHint="Aguarda você aparecer de corpo inteiro e captura automaticamente"
+                >
+                  <Text style={styles.captureButtonText}>AVALIAR</Text>
+                </TouchableOpacity>
+              )}
+
+              <TouchableOpacity
+                style={styles.sideIcon}
+                onPress={() => router.push("/perfil")}
+                accessibilityLabel="Configurar meu perfil de estilo"
+                accessibilityRole="button"
+                hitSlop={12}
+              >
+                <Ionicons name="settings-outline" size={30} color="#FFFFFF" />
+              </TouchableOpacity>
+              </View>
+            </>
           )}
         </View>
       </View>
@@ -410,7 +420,6 @@ const styles = StyleSheet.create({
     paddingTop: 60,
     paddingHorizontal: SPACING.md,
   },
-  topButtons: { flexDirection: "row", gap: SPACING.sm },
   permissionText: { color: COLORS.textPrimary, fontSize: FONT_SIZE.lg, textAlign: "center" },
   permissionButton: {
     backgroundColor: COLORS.accent,
@@ -432,15 +441,12 @@ const styles = StyleSheet.create({
   notaLabel: { color: COLORS.accent, fontSize: FONT_SIZE.xs, fontWeight: "700", letterSpacing: 1 },
   notaValor: { color: COLORS.textPrimary, fontSize: FONT_SIZE.xxl, fontWeight: "800", lineHeight: 38 },
   notaVer: { color: COLORS.textSecondary, fontSize: FONT_SIZE.xs },
-  iconButton: {
-    width: 52,
-    height: 52,
-    backgroundColor: "rgba(10,10,10,0.75)",
-    borderRadius: 26,
+  sideIcon: {
+    width: 56,
+    height: 56,
     justifyContent: "center",
     alignItems: "center",
   },
-  iconText: { fontSize: 22 },
   guidanceBox: {
     alignSelf: "center",
     backgroundColor: "rgba(10,10,10,0.8)",
@@ -458,6 +464,12 @@ const styles = StyleSheet.create({
     fontWeight: "600",
   },
   captureArea: { alignItems: "center", paddingBottom: 60 },
+  captureRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: SPACING.xl,
+  },
   captureButton: {
     backgroundColor: COLORS.accent,
     borderRadius: 40,
