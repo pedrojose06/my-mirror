@@ -17,20 +17,23 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
   const { descricao_look, perfil } = parsed.data;
 
+  // Patrocinados (do registro de anunciantes) — não dependem do Gemini,
+  // então sempre retornam, mesmo que a busca orgânica falhe.
+  const sponsored = matchedSponsored(descricao_look, perfil, 2);
+
+  // Orgânicos via Gemini grounding — isolado: se falhar (ex: 503 do modelo),
+  // seguimos só com os patrocinados em vez de derrubar a resposta inteira.
+  let organic: Awaited<ReturnType<typeof findSuggestions>> = [];
   try {
-    // Patrocinados (do registro de anunciantes) primeiro; orgânicos preenchem o resto.
-    const sponsored = matchedSponsored(descricao_look, perfil, 2);
-    const organic = await findSuggestions(descricao_look, perfil, 4);
-
-    // Evita duplicar uma loja patrocinada que também apareça na busca orgânica.
-    const sponsoredKeys = new Set(sponsored.map((s) => s.nome.toLowerCase()));
-    const organicFiltered = organic.filter((o) => !sponsoredKeys.has(o.nome.toLowerCase()));
-
-    const sugestoes = [...sponsored, ...organicFiltered].slice(0, 6);
-    return res.status(200).json({ sugestoes });
+    organic = await findSuggestions(descricao_look, perfil, 4);
   } catch (err) {
-    console.error("[suggestions] Erro:", err);
-    const message = err instanceof Error ? err.message : "Erro desconhecido";
-    return res.status(500).json({ error: "Falha ao buscar recomendações", detalhes: message });
+    console.error("[suggestions] busca orgânica falhou (seguindo só com patrocinados):", err);
   }
+
+  // Evita duplicar uma loja patrocinada que também apareça na busca orgânica.
+  const sponsoredKeys = new Set(sponsored.map((s) => s.nome.toLowerCase()));
+  const organicFiltered = organic.filter((o) => !sponsoredKeys.has(o.nome.toLowerCase()));
+
+  const sugestoes = [...sponsored, ...organicFiltered].slice(0, 6);
+  return res.status(200).json({ sugestoes });
 }

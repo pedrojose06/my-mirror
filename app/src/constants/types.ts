@@ -1,7 +1,8 @@
 // Espelha o schema do backend — manter em sincronia
 
 export interface StyleProfile {
-  ocasiao: "trabalho" | "casual" | "evento" | "esporte";
+  // presets (trabalho/casual/evento/esporte) ou texto livre quando "Outra"
+  ocasiao: string;
   estilo: string;
   cores_que_gosta: string[];
   cores_que_evita: string[];

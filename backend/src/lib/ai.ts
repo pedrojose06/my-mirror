@@ -230,6 +230,11 @@ export async function findSuggestions(
 
   const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
 
+  // Modelos a tentar em ordem: se o primeiro der 503 (sobrecarga), cai pro próximo.
+  const models = [SEARCH_MODEL, "gemini-flash-latest", "gemini-2.0-flash"].filter(
+    (m, i, arr) => arr.indexOf(m) === i
+  );
+
   const prompt = `Você é um(a) personal stylist. A pessoa está usando: ${descricaoLook}.
 Perfil: ocasião ${perfil.ocasiao}, estilo ${perfil.estilo || "não informado"}, formalidade ${perfil.formalidade}, cores que gosta: ${perfil.cores_que_gosta.join(", ") || "não informado"}.
 Use a busca do Google para encontrar ${limit} peças de roupa/acessórios REAIS à venda online que COMBINEM e complementem esse look (lojas do Brasil de preferência).
@@ -237,13 +242,32 @@ Responda APENAS com um array JSON, sem texto extra, no formato:
 [{"nome":"...","descricao":"... (1 frase de por que combina)","loja":"...","preco":"R$ ... (se souber)","imagem":"https://url-da-imagem-do-produto (se encontrar uma image url valida, og:image ou similar; caso contrario omita)"}]
 Nao inclua o campo "url" — sera gerado depois.`;
 
-  const response = await ai.models.generateContent({
-    model: SEARCH_MODEL,
-    contents: [{ role: "user", parts: [{ text: prompt }] }],
-    config: {
-      tools: [{ googleSearch: {} }],
-    },
-  });
+  // Tenta cada modelo; em 503/sobrecarga, faz 1 retry rápido e depois troca de modelo.
+  let response: any = null;
+  let lastErr: unknown = null;
+  outer: for (const model of models) {
+    for (let attempt = 0; attempt < 2; attempt++) {
+      try {
+        response = await ai.models.generateContent({
+          model,
+          contents: [{ role: "user", parts: [{ text: prompt }] }],
+          config: { tools: [{ googleSearch: {} }] },
+        });
+        break outer;
+      } catch (err) {
+        lastErr = err;
+        const msg = err instanceof Error ? err.message : String(err);
+        const overloaded = msg.includes("503") || msg.includes("UNAVAILABLE") || msg.includes("high demand");
+        console.error(`[findSuggestions] ${model} tentativa ${attempt + 1} falhou:`, msg.slice(0, 120));
+        if (!overloaded) break; // erro não-transitório: pula pro próximo modelo
+        await new Promise((r) => setTimeout(r, 700));
+      }
+    }
+  }
+
+  if (!response) {
+    throw lastErr ?? new Error("Falha ao gerar sugestões");
+  }
 
   const raw = (response.text || "")
     .replace(/```json\s*/gi, "")

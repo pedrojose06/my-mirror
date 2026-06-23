@@ -1,0 +1,28 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1242 2208" width="1242" height="2208">
+  <rect width="1242" height="2208" fill="#333333"/>
+  <g transform="translate(621, 1104)">
+    <!-- "Lux" em serif (Goudy Old Style / Garamond fallback) -->
+    <text x="-30" y="40"
+          font-family="'Goudy Old Style', 'Garamond', 'Hoefler Text', serif"
+          font-size="280"
+          font-weight="400"
+          fill="#F8F8F8"
+          text-anchor="end">Lux</text>
+    <!-- "ai" em sans geometrico (Futura / Century Gothic fallback) -->
+    <text x="30" y="40"
+          font-family="'Futura', 'Century Gothic', 'Avenir', sans-serif"
+          font-size="280"
+          font-weight="500"
+          fill="#8A2BE2"
+          text-anchor="start">ai</text>
+    <!-- Tagline -->
+    <text x="0" y="160"
+          font-family="'Montserrat', 'Segoe UI', sans-serif"
+          font-size="48"
+          font-weight="300"
+          fill="#F8F8F8"
+          letter-spacing="12"
+          text-anchor="middle"
+          opacity="0.7">SEU ESPELHO INTELIGENTE</text>
+  </g>
+</svg>

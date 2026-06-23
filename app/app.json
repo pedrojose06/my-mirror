@@ -1,20 +1,26 @@
 {
   "expo": {
-    "name": "EspelhoIA",
+    "name": "Luxai",
     "slug": "espelhoia",
-    "version": "0.1.0",
+    "version": "0.1.2",
     "orientation": "portrait",
     "userInterfaceStyle": "dark",
+    "icon": "./assets/brand/icon.png",
     "ios": {
       "supportsTablet": false,
       "bundleIdentifier": "com.espelhoia.app",
       "infoPlist": {
-        "NSCameraUsageDescription": "O EspelhoIA usa a câmera para avaliar seu look e dar feedback personalizado.",
+        "NSCameraUsageDescription": "O Luxai usa a câmera para avaliar seu look e dar feedback personalizado.",
         "NSMicrophoneUsageDescription": "Necessário para acessar a câmera no iOS."
       }
     },
     "android": {
       "package": "com.espelhoia.app",
+      "versionCode": 13,
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/brand/adaptive-icon.png",
+        "backgroundColor": "#8A2BE2"
+      },
       "permissions": [
         "android.permission.CAMERA"
       ]
@@ -22,16 +28,25 @@
     "plugins": [
       "expo-router",
       [
+        "expo-splash-screen",
+        {
+          "image": "./assets/brand/splash-native.png",
+          "imageWidth": 240,
+          "resizeMode": "contain",
+          "backgroundColor": "#7d28cf"
+        }
+      ],
+      [
         "react-native-vision-camera",
         {
-          "cameraPermissionText": "O EspelhoIA usa a câmera para avaliar seu look.",
+          "cameraPermissionText": "O Luxai usa a câmera para avaliar seu look.",
           "enableMicrophonePermission": false
         }
       ],
       "react-native-fast-tflite",
       "expo-audio"
     ],
-    "scheme": "espelhoia",
+    "scheme": "luxai",
     "experiments": {
       "typedRoutes": true
     }
