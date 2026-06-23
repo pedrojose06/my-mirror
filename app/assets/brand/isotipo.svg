@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024" width="1024" height="1024">
+  <rect width="1024" height="1024" fill="#333333"/>
+  <!-- Frame externo (amethyst) -->
+  <g fill="none" stroke="#8A2BE2" stroke-width="36" stroke-linecap="square">
+    <!-- canto sup-esq -->
+    <path d="M 220 360 L 220 220 L 360 220"/>
+    <!-- canto sup-dir -->
+    <path d="M 664 220 L 804 220 L 804 360"/>
+    <!-- canto inf-esq -->
+    <path d="M 220 664 L 220 804 L 360 804"/>
+    <!-- canto inf-dir -->
+    <path d="M 664 804 L 804 804 L 804 664"/>
+  </g>
+  <!-- Frame interno (off-white, leve, deslocado) -->
+  <g fill="none" stroke="#F8F8F8" stroke-width="24" stroke-linecap="square" opacity="0.9">
+    <path d="M 268 380 L 268 268 L 380 268"/>
+    <path d="M 644 268 L 756 268 L 756 380"/>
+    <path d="M 268 644 L 268 756 L 380 756"/>
+    <path d="M 644 756 L 756 756 L 756 644"/>
+  </g>
+</svg>

@@ -6,6 +6,7 @@ import {
   TouchableOpacity,
   ActivityIndicator,
   Pressable,
+  Image,
 } from "react-native";
 import {
   Camera,
@@ -20,6 +21,7 @@ import { Worklets, useSharedValue } from "react-native-worklets-core";
 import * as ImageManipulator from "expo-image-manipulator";
 import { useRouter } from "expo-router";
 import { useIsFocused } from "@react-navigation/native";
+import { LuxaiLoader } from "../src/components/LuxaiLoader";
 import { useAppStore } from "../src/state/useAppStore";
 import { evaluateLook, fetchSuggestions } from "../src/services/api";
 import { speak } from "../src/services/voice";
@@ -307,6 +309,14 @@ function Screen({
       />
 
       <View style={styles.overlay}>
+        {/* Marca: ISOLOGO centralizado no topo */}
+        <Image
+          source={require("../assets/brand/isologo.png")}
+          style={styles.brandLogo}
+          resizeMode="contain"
+          accessibilityLabel="Luxai"
+        />
+
         {/* Topo: nota anterior + trocar câmera */}
         <View style={styles.topRow}>
           {lastResult ? (
@@ -354,7 +364,7 @@ function Screen({
         <View style={styles.captureArea}>
           {mode === "evaluating" ? (
             <View style={styles.evaluatingIndicator} accessibilityLiveRegion="polite">
-              <ActivityIndicator size="large" color={COLORS.accent} />
+              <LuxaiLoader size={96} />
               <Text style={styles.evaluatingText}>Analisando seu look…</Text>
             </View>
           ) : mode === "aligning" ? (
@@ -385,6 +395,14 @@ const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: COLORS.background },
   centered: { justifyContent: "center", alignItems: "center", padding: SPACING.xl, gap: SPACING.md },
   overlay: { flex: 1, justifyContent: "space-between" },
+  brandLogo: {
+    position: "absolute",
+    top: 56,
+    alignSelf: "center",
+    width: 150,
+    height: 60,
+    zIndex: 10,
+  },
   topRow: {
     flexDirection: "row",
     justifyContent: "space-between",

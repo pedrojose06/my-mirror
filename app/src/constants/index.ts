@@ -6,20 +6,20 @@ export const API_BASE_URL =
 export const EVALUATE_ENDPOINT = `${API_BASE_URL}/api/evaluate`;
 export const SUGGESTIONS_ENDPOINT = `${API_BASE_URL}/api/suggestions`;
 
-// Design tokens
+// Design tokens — identidade visual Luxai
 export const COLORS = {
-  background: "#0a0a0a",
-  surface: "#161616",
-  surfaceElevated: "#1f1f1f",
-  accent: "#c8f542",      // verde lima — o elemento de assinatura visual
-  accentDim: "#8ab82e",
-  textPrimary: "#f0f0f0",
-  textSecondary: "#8a8a8a",
-  textMuted: "#555555",
+  background: "#222222",       // charcoal mais profundo que a base da marca
+  surface: "#2e2e2e",          // derivado do Charcoal Grey (#333333)
+  surfaceElevated: "#3a3a3a",
+  accent: "#8A2BE2",           // Royal Amethyst — cor de assinatura da marca
+  accentDim: "#6f22b5",
+  textPrimary: "#F8F8F8",      // Off-White dos highlights
+  textSecondary: "#9a9a9a",
+  textMuted: "#5a5a5a",
   success: "#4ade80",
   warning: "#facc15",
   error: "#f87171",
-  border: "#2a2a2a",
+  border: "#3f3f3f",
 };
 
 export const FONT_SIZE = {
