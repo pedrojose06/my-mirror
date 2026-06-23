@@ -5,7 +5,7 @@ import {
   ScrollView,
   TouchableOpacity,
 } from "react-native";
-import * as Speech from "expo-speech";
+import { speak } from "../src/services/voice";
 import { useAppStore } from "../src/state/useAppStore";
 import { COLORS, FONT_SIZE, SPACING } from "../src/constants";
 import { AdequacaoOcasiao } from "../src/constants/types";
@@ -32,7 +32,7 @@ export default function ResultadoScreen() {
   }
 
   const handleRepeatVoice = () => {
-    Speech.speak(lastResult.resumo_voz, { language: "pt-BR", rate: 0.9 });
+    speak(lastResult.resumo_voz);
   };
 
   const adequacaoColor =

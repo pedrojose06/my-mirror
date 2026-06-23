@@ -2,7 +2,7 @@
   "expo": {
     "name": "EspelhoIA",
     "slug": "espelhoia",
-    "version": "1.0.0",
+    "version": "0.1.0",
     "orientation": "portrait",
     "userInterfaceStyle": "dark",
     "ios": {
@@ -28,7 +28,8 @@
           "enableMicrophonePermission": false
         }
       ],
-      "react-native-fast-tflite"
+      "react-native-fast-tflite",
+      "expo-audio"
     ],
     "scheme": "espelhoia",
     "experiments": {

@@ -18,10 +18,10 @@ import { useResizePlugin } from "vision-camera-resize-plugin";
 import { useTensorflowModel } from "react-native-fast-tflite";
 import { Worklets, useSharedValue } from "react-native-worklets-core";
 import * as ImageManipulator from "expo-image-manipulator";
-import * as Speech from "expo-speech";
 import { useRouter } from "expo-router";
 import { useAppStore } from "../src/state/useAppStore";
 import { evaluateLook } from "../src/services/api";
+import { speak } from "../src/services/voice";
 import { COLORS, FONT_SIZE, SPACING } from "../src/constants";
 
 // Índices dos keypoints do MoveNet (ordem oficial)
@@ -170,16 +170,18 @@ function Screen({
       if (!manipulated.base64) throw new Error("Falha ao processar imagem");
 
       const resultado = await evaluateLook(manipulated.base64, profile);
-      setLastResult(resultado);
-      Speech.speak(resultado.resumo_voz, { language: "pt-BR", rate: 0.9 });
+      // Mantém o "Analisando..." até a voz começar; aí revela a nota + fala juntos.
+      speak(resultado.resumo_voz, () => {
+        setLastResult(resultado);
+        setMode("idle");
+      });
     } catch (err) {
       console.error("[capture] erro:", err);
-      Speech.speak("Não consegui avaliar o look agora. Tente novamente.", {
-        language: "pt-BR",
+      speak("Não consegui avaliar o look agora. Tente novamente.", () => {
+        setMode("idle");
       });
     } finally {
       setIsEvaluating(false);
-      setMode("idle");
       setPoseStatus("none");
       fullStreak.current = 0;
       capturingRef.current = false;
