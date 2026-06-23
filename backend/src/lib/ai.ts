@@ -3,7 +3,7 @@ import { EvaluationResultSchema, StyleProfile, EvaluationResult } from "./schema
 import { SYSTEM_PROMPT, buildUserPromptText } from "./promptBuilder";
 
 // Modelo do Gemini — pode ser sobrescrito por GEMINI_MODEL no .env.
-const MODEL = process.env.GEMINI_MODEL || "gemini-3.1-flash";
+const MODEL = process.env.GEMINI_MODEL || "gemini-flash-lite-latest";
 
 // Modo mock: devolve avaliação falsa sem chamar a API (para testar sem custo/sem key).
 // Ativado por MOCK_AI=true ou quando não há GEMINI_API_KEY configurada.
