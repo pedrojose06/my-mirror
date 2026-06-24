@@ -1,3 +1,4 @@
+import { useState } from "react";
 import {
   StyleSheet,
   View,
@@ -6,16 +7,36 @@ import {
   TouchableOpacity,
   ScrollView,
   Alert,
+  KeyboardAvoidingView,
+  Platform,
 } from "react-native";
 import { useRouter } from "expo-router";
 import { useAppStore } from "../src/state/useAppStore";
 import { signOut } from "../src/services/auth";
 import { COLORS, FONT_SIZE, OCASIOES, FORMALIDADES, SPACING } from "../src/constants";
 
+// Converte o texto livre de cores ("azul, branco") em lista, separando por
+// vírgula. O texto exibido fica em estado local (cru) para não "comer" vírgulas
+// e espaços enquanto o usuário digita.
+function parseColors(text: string): string[] {
+  return text
+    .split(",")
+    .map((s) => s.trim())
+    .filter(Boolean);
+}
+
 export default function PerfilScreen() {
   const router = useRouter();
   const { profile, setProfile, saveProfile } = useAppStore();
   const user = useAppStore((s) => s.user);
+
+  // Texto cru dos campos de cor (preserva vírgulas/espaços durante a digitação).
+  const [coresGostaText, setCoresGostaText] = useState(() =>
+    profile.cores_que_gosta.join(", ")
+  );
+  const [coresEvitaText, setCoresEvitaText] = useState(() =>
+    profile.cores_que_evita.join(", ")
+  );
 
   const handleSave = async () => {
     await saveProfile();
@@ -28,10 +49,15 @@ export default function PerfilScreen() {
   };
 
   return (
+    <KeyboardAvoidingView
+      style={styles.container}
+      behavior={Platform.OS === "ios" ? "padding" : undefined}
+    >
     <ScrollView
       style={styles.container}
       contentContainerStyle={styles.content}
       keyboardShouldPersistTaps="handled"
+      keyboardDismissMode="interactive"
     >
       {/* Conta */}
       <View style={styles.section}>
@@ -147,14 +173,14 @@ export default function PerfilScreen() {
         <Text style={styles.sectionLabel}>CORES QUE GOSTA</Text>
         <TextInput
           style={styles.textInput}
-          value={profile.cores_que_gosta.join(", ")}
-          onChangeText={(val) =>
-            setProfile({
-              cores_que_gosta: val.split(",").map((s) => s.trim()).filter(Boolean),
-            })
-          }
+          value={coresGostaText}
+          onChangeText={(val) => {
+            setCoresGostaText(val);
+            setProfile({ cores_que_gosta: parseColors(val) });
+          }}
           placeholder="Ex: azul, branco, cinza…"
           placeholderTextColor={COLORS.textMuted}
+          autoCapitalize="none"
           accessibilityLabel="Cores que você gosta, separadas por vírgula"
         />
       </View>
@@ -164,14 +190,14 @@ export default function PerfilScreen() {
         <Text style={styles.sectionLabel}>CORES QUE EVITA</Text>
         <TextInput
           style={styles.textInput}
-          value={profile.cores_que_evita.join(", ")}
-          onChangeText={(val) =>
-            setProfile({
-              cores_que_evita: val.split(",").map((s) => s.trim()).filter(Boolean),
-            })
-          }
+          value={coresEvitaText}
+          onChangeText={(val) => {
+            setCoresEvitaText(val);
+            setProfile({ cores_que_evita: parseColors(val) });
+          }}
           placeholder="Ex: amarelo, laranja…"
           placeholderTextColor={COLORS.textMuted}
+          autoCapitalize="none"
           accessibilityLabel="Cores que você evita, separadas por vírgula"
         />
       </View>
@@ -202,6 +228,7 @@ export default function PerfilScreen() {
         <Text style={styles.saveButtonText}>SALVAR PERFIL</Text>
       </TouchableOpacity>
     </ScrollView>
+    </KeyboardAvoidingView>
   );
 }
 
@@ -213,7 +240,8 @@ const styles = StyleSheet.create({
   content: {
     padding: SPACING.lg,
     gap: SPACING.lg,
-    paddingBottom: SPACING.xxl,
+    // Espaço extra para os últimos campos subirem acima do teclado ao focar.
+    paddingBottom: 320,
   },
   section: {
     gap: SPACING.sm,
