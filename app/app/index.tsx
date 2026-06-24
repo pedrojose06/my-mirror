@@ -109,6 +109,7 @@ function CameraScreen({
   const router = useRouter();
   const isFocused = useIsFocused();
   const lastResult = useAppStore((s) => s.lastResult);
+  const freeLimitReached = useAppStore((s) => s.freeLimitReached);
 
   const cameraRef = useRef<Camera>(null);
   const [mode, setMode] = useState<CaptureMode>("idle");
@@ -165,6 +166,11 @@ function CameraScreen({
   });
 
   const startAligning = () => {
+    // Bloqueia ao esgotar as avaliações gratuitas do aparelho → paywall.
+    if (freeLimitReached) {
+      router.push("/paywall");
+      return;
+    }
     resetPose();
     setMode("aligning");
   };

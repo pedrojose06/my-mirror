@@ -38,6 +38,7 @@ export function useLookEvaluation({
   const setIsFetchingSuggestions = useAppStore(
     (s) => s.setIsFetchingSuggestions
   );
+  const registerEvaluation = useAppStore((s) => s.registerEvaluation);
 
   return useCallback(async () => {
     setMode("evaluating");
@@ -60,6 +61,9 @@ export function useLookEvaluation({
       if (!manipulated.base64) throw new Error("Falha ao processar imagem");
 
       const resultado = await evaluateLook(manipulated.base64, profile);
+
+      // Consome uma avaliação gratuita do aparelho (só conta as bem-sucedidas)
+      registerEvaluation();
 
       // Busca sugestões em paralelo com a voz (não bloqueia o fluxo)
       if (resultado.descricao_look) {

@@ -6,6 +6,9 @@ export const API_BASE_URL =
 export const EVALUATE_ENDPOINT = `${API_BASE_URL}/api/evaluate`;
 export const SUGGESTIONS_ENDPOINT = `${API_BASE_URL}/api/suggestions`;
 
+// Nº de avaliações gratuitas por aparelho antes de pedir login/assinatura.
+export const FREE_EVALUATION_LIMIT = 5;
+
 // Design tokens — identidade visual Luxai
 export const COLORS = {
   background: "#222222",       // charcoal mais profundo que a base da marca
