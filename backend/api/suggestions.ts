@@ -2,12 +2,20 @@ import type { VercelRequest, VercelResponse } from "@vercel/node";
 import { SuggestionsRequestSchema } from "../src/lib/schema";
 import { findSuggestions } from "../src/lib/ai";
 import { matchedSponsored } from "../src/lib/ads";
+import { rateLimit, clientKey } from "../src/lib/rateLimit";
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   res.setHeader("Access-Control-Allow-Origin", "*");
   if (req.method === "OPTIONS") return res.status(200).end();
   if (req.method !== "POST") {
     return res.status(405).json({ error: "Método não permitido" });
+  }
+
+  // Rate limit: busca usa grounding (custo). 15 req/min por IP (best-effort).
+  const rl = rateLimit(`suggestions:${clientKey(req.headers)}`, 15, 60_000);
+  if (!rl.allowed) {
+    res.setHeader("Retry-After", String(rl.retryAfterSec));
+    return res.status(429).json({ error: "Muitas requisições. Tente novamente em instantes." });
   }
 
   const parsed = SuggestionsRequestSchema.safeParse(req.body);

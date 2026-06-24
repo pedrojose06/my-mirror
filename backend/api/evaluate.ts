@@ -1,6 +1,7 @@
 import type { VercelRequest, VercelResponse } from "@vercel/node";
 import { EvaluateRequestSchema } from "../src/lib/schema";
 import { evaluateLook } from "../src/lib/ai";
+import { rateLimit, clientKey } from "../src/lib/rateLimit";
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   // CORS preflight
@@ -10,6 +11,13 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
   if (req.method !== "POST") {
     return res.status(405).json({ error: "Método não permitido" });
+  }
+
+  // Rate limit: avaliação é cara (visão). 10 req/min por IP (best-effort).
+  const rl = rateLimit(`evaluate:${clientKey(req.headers)}`, 10, 60_000);
+  if (!rl.allowed) {
+    res.setHeader("Retry-After", String(rl.retryAfterSec));
+    return res.status(429).json({ error: "Muitas requisições. Tente novamente em instantes." });
   }
 
   // Validar payload de entrada
