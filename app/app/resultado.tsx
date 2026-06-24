@@ -5,13 +5,12 @@ import {
   ScrollView,
   TouchableOpacity,
   ActivityIndicator,
-  Linking,
-  Image,
 } from "react-native";
 import { speak } from "../src/services/voice";
 import { useAppStore } from "../src/state/useAppStore";
+import { SuggestionCard } from "../src/components/SuggestionCard";
 import { COLORS, FONT_SIZE, SPACING } from "../src/constants";
-import { AdequacaoOcasiao, SuggestionItem } from "../src/constants/types";
+import { AdequacaoOcasiao } from "../src/constants/types";
 
 const ADEQUACAO_COLOR: Record<AdequacaoOcasiao, string> = {
   "ótimo": COLORS.success,
@@ -114,48 +113,6 @@ export default function ResultadoScreen() {
         </View>
       )}
     </ScrollView>
-  );
-}
-
-function SuggestionCard({ item }: { item: SuggestionItem }) {
-  const handlePress = () => {
-    if (item.url) Linking.openURL(item.url);
-  };
-
-  return (
-    <TouchableOpacity
-      style={styles.suggestionCard}
-      onPress={handlePress}
-      disabled={!item.url}
-      accessibilityLabel={`${item.nome}${item.patrocinado ? ", patrocinado" : ""}. ${item.descricao}`}
-      accessibilityRole={item.url ? "link" : "text"}
-    >
-      <View style={styles.suggestionRow}>
-        {item.imagem ? (
-          <Image source={{ uri: item.imagem }} style={styles.suggestionImage} />
-        ) : (
-          <View style={[styles.suggestionImage, styles.suggestionImagePlaceholder]}>
-            <Text style={styles.suggestionImageEmoji}>👕</Text>
-          </View>
-        )}
-        <View style={styles.suggestionInfo}>
-          <View style={styles.suggestionHeader}>
-            <Text style={styles.suggestionNome} numberOfLines={2}>{item.nome}</Text>
-            {item.patrocinado && (
-              <View style={styles.sponsoredBadge}>
-                <Text style={styles.sponsoredText}>Patrocinado</Text>
-              </View>
-            )}
-          </View>
-          <Text style={styles.suggestionDescricao} numberOfLines={3}>{item.descricao}</Text>
-          <View style={styles.suggestionFooter}>
-            {item.loja ? <Text style={styles.suggestionLoja}>{item.loja}</Text> : null}
-            {item.preco ? <Text style={styles.suggestionPreco}>{item.preco}</Text> : null}
-          </View>
-        </View>
-      </View>
-      {item.url && <Text style={styles.verProduto}>Ver no Google Shopping →</Text>}
-    </TouchableOpacity>
   );
 }
 
@@ -272,87 +229,5 @@ const styles = StyleSheet.create({
   loadingText: {
     color: COLORS.textSecondary,
     fontSize: FONT_SIZE.sm,
-  },
-  suggestionCard: {
-    backgroundColor: COLORS.surfaceElevated,
-    borderRadius: 12,
-    padding: SPACING.md,
-    gap: SPACING.sm,
-    borderWidth: 1,
-    borderColor: COLORS.border,
-    marginTop: SPACING.sm,
-  },
-  suggestionRow: {
-    flexDirection: "row",
-    gap: SPACING.md,
-    alignItems: "flex-start",
-  },
-  suggestionImage: {
-    width: 72,
-    height: 72,
-    borderRadius: 8,
-    backgroundColor: COLORS.surface,
-  },
-  suggestionImagePlaceholder: {
-    alignItems: "center",
-    justifyContent: "center",
-    borderWidth: 1,
-    borderColor: COLORS.border,
-  },
-  suggestionImageEmoji: {
-    fontSize: 32,
-  },
-  suggestionInfo: {
-    flex: 1,
-    gap: SPACING.xs,
-  },
-  suggestionHeader: {
-    flexDirection: "row",
-    alignItems: "flex-start",
-    gap: SPACING.sm,
-    justifyContent: "space-between",
-  },
-  suggestionNome: {
-    color: COLORS.textPrimary,
-    fontSize: FONT_SIZE.md,
-    fontWeight: "600",
-    flex: 1,
-  },
-  sponsoredBadge: {
-    backgroundColor: COLORS.accentDim,
-    borderRadius: 4,
-    paddingHorizontal: 6,
-    paddingVertical: 2,
-  },
-  sponsoredText: {
-    color: COLORS.background,
-    fontSize: FONT_SIZE.xs,
-    fontWeight: "700",
-    letterSpacing: 0.5,
-  },
-  suggestionDescricao: {
-    color: COLORS.textSecondary,
-    fontSize: FONT_SIZE.sm,
-    lineHeight: FONT_SIZE.sm * 1.5,
-  },
-  suggestionFooter: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    marginTop: SPACING.xs,
-  },
-  suggestionLoja: {
-    color: COLORS.textMuted,
-    fontSize: FONT_SIZE.xs,
-  },
-  suggestionPreco: {
-    color: COLORS.accent,
-    fontSize: FONT_SIZE.sm,
-    fontWeight: "700",
-  },
-  verProduto: {
-    color: COLORS.accentDim,
-    fontSize: FONT_SIZE.xs,
-    marginTop: SPACING.xs,
   },
 });

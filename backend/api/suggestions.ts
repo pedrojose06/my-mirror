@@ -1,6 +1,6 @@
 import type { VercelRequest, VercelResponse } from "@vercel/node";
 import { SuggestionsRequestSchema } from "../src/lib/schema";
-import { findSuggestions } from "../src/lib/ai";
+import { findSuggestions } from "../src/lib/suggestions";
 import { matchedSponsored } from "../src/lib/ads";
 import { rateLimit, clientKey } from "../src/lib/rateLimit";
 

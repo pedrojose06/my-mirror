@@ -2,6 +2,9 @@ import { createAudioPlayer, setAudioModeAsync, AudioPlayer } from "expo-audio";
 import * as Speech from "expo-speech";
 import { API_BASE_URL } from "../constants";
 
+// Tempo máximo aguardando o stream começar antes de cair pra voz do sistema.
+const STREAM_START_TIMEOUT_MS = 7000;
+
 // Garante que o áudio toque mesmo com o celular no silencioso.
 setAudioModeAsync({ playsInSilentMode: true }).catch(() => {});
 
@@ -56,7 +59,7 @@ export async function speak(text: string, onStart?: () => void): Promise<void> {
 
     player.play();
 
-    // Se em 7s nada começou a tocar (rede/erro), usa a voz do sistema.
+    // Se nada começou a tocar a tempo (rede/erro), usa a voz do sistema.
     setTimeout(() => {
       if (!startFired && myToken === playToken) {
         try {
@@ -65,7 +68,7 @@ export async function speak(text: string, onStart?: () => void): Promise<void> {
         } catch {}
         fallback();
       }
-    }, 7000);
+    }, STREAM_START_TIMEOUT_MS);
   } catch (err) {
     console.warn("[voice] streaming falhou, usando voz do sistema:", err);
     if (myToken === playToken) fallback();
