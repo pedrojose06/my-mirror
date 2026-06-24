@@ -1,4 +1,4 @@
-import { StyleSheet, View, Text, TouchableOpacity, Alert, Image } from "react-native";
+import { StyleSheet, View, Text, TouchableOpacity, Image } from "react-native";
 import { useRouter } from "expo-router";
 import { useAppStore } from "../src/state/useAppStore";
 import { COLORS, FONT_SIZE, SPACING, FREE_EVALUATION_LIMIT } from "../src/constants";
@@ -14,12 +14,9 @@ export default function PaywallScreen() {
   const router = useRouter();
   const evaluationsUsed = useAppStore((s) => s.evaluationsUsed);
 
-  // CTA real (login + assinatura) ainda não implementado.
+  // Conversão: leva ao cadastro. (Cobrança/assinatura real virá depois.)
   const handleSubscribe = () => {
-    Alert.alert(
-      "Em breve",
-      "As assinaturas Luxai Premium chegam já já. Obrigado por usar o app!"
-    );
+    router.replace("/cadastro");
   };
 
   return (

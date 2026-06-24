@@ -16,7 +16,7 @@
     },
     "android": {
       "package": "com.espelhoia.app",
-      "versionCode": 16,
+      "versionCode": 17,
       "adaptiveIcon": {
         "foregroundImage": "./assets/brand/adaptive-icon.png",
         "backgroundColor": "#8A2BE2"
@@ -44,7 +44,8 @@
         }
       ],
       "react-native-fast-tflite",
-      "expo-audio"
+      "expo-audio",
+      "expo-web-browser"
     ],
     "scheme": "luxai",
     "experiments": {

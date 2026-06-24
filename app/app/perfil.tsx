@@ -7,15 +7,24 @@ import {
   ScrollView,
   Alert,
 } from "react-native";
+import { useRouter } from "expo-router";
 import { useAppStore } from "../src/state/useAppStore";
+import { signOut } from "../src/services/auth";
 import { COLORS, FONT_SIZE, OCASIOES, FORMALIDADES, SPACING } from "../src/constants";
 
 export default function PerfilScreen() {
+  const router = useRouter();
   const { profile, setProfile, saveProfile } = useAppStore();
+  const user = useAppStore((s) => s.user);
 
   const handleSave = async () => {
     await saveProfile();
     Alert.alert("Salvo!", "Seu perfil de estilo foi atualizado.");
+  };
+
+  const handleSignOut = async () => {
+    await signOut();
+    Alert.alert("Pronto", "Você saiu da sua conta.");
   };
 
   return (
@@ -24,6 +33,43 @@ export default function PerfilScreen() {
       contentContainerStyle={styles.content}
       keyboardShouldPersistTaps="handled"
     >
+      {/* Conta */}
+      <View style={styles.section}>
+        <Text style={styles.sectionLabel}>CONTA</Text>
+        {user ? (
+          <>
+            <Text style={styles.accountEmail}>{user.email}</Text>
+            <TouchableOpacity
+              style={styles.accountButton}
+              onPress={handleSignOut}
+              accessibilityRole="button"
+              accessibilityLabel="Sair da conta"
+            >
+              <Text style={styles.accountButtonText}>Sair</Text>
+            </TouchableOpacity>
+          </>
+        ) : (
+          <View style={styles.accountRow}>
+            <TouchableOpacity
+              style={[styles.accountButton, styles.accountButtonPrimary]}
+              onPress={() => router.push("/login")}
+              accessibilityRole="button"
+              accessibilityLabel="Entrar"
+            >
+              <Text style={styles.accountButtonTextPrimary}>Entrar</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={styles.accountButton}
+              onPress={() => router.push("/cadastro")}
+              accessibilityRole="button"
+              accessibilityLabel="Criar conta"
+            >
+              <Text style={styles.accountButtonText}>Criar conta</Text>
+            </TouchableOpacity>
+          </View>
+        )}
+      </View>
+
       {/* Ocasião */}
       <View style={styles.section}>
         <Text style={styles.sectionLabel}>OCASIÃO DO DIA</Text>
@@ -171,6 +217,39 @@ const styles = StyleSheet.create({
   },
   section: {
     gap: SPACING.sm,
+  },
+  accountEmail: {
+    color: COLORS.textPrimary,
+    fontSize: FONT_SIZE.md,
+    fontWeight: "600",
+  },
+  accountRow: {
+    flexDirection: "row",
+    gap: SPACING.sm,
+  },
+  accountButton: {
+    borderWidth: 1,
+    borderColor: COLORS.border,
+    borderRadius: 12,
+    paddingVertical: SPACING.sm,
+    paddingHorizontal: SPACING.lg,
+    minHeight: 44,
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  accountButtonPrimary: {
+    backgroundColor: COLORS.accent,
+    borderColor: COLORS.accent,
+  },
+  accountButtonText: {
+    color: COLORS.textPrimary,
+    fontSize: FONT_SIZE.md,
+    fontWeight: "600",
+  },
+  accountButtonTextPrimary: {
+    color: "#FFFFFF",
+    fontSize: FONT_SIZE.md,
+    fontWeight: "700",
   },
   sectionLabel: {
     color: COLORS.textSecondary,
