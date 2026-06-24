@@ -124,6 +124,9 @@ const styles = StyleSheet.create({
   content: {
     padding: SPACING.lg,
     gap: SPACING.lg,
+    // Garante espaço no fim para rolar até a última sugestão (acima da barra
+    // de navegação / gestos em alguns aparelhos).
+    paddingBottom: 64,
   },
   centered: {
     justifyContent: "center",

@@ -99,7 +99,6 @@ export function matchedSponsored(
         (acc, tag) => acc + (terms.has(normalize(tag)) ? 1 : 0),
         0
       );
-      if (score <= 0) continue;
       scored.push({
         score,
         prioridade: adv.prioridade,
@@ -116,6 +115,14 @@ export function matchedSponsored(
     }
   }
 
-  scored.sort((a, b) => b.prioridade - a.prioridade || b.score - a.score);
+  // Ordena por: casou tag primeiro, depois prioridade do anunciante, depois nº de tags.
+  // Inclui itens sem match (score 0) como fallback, garantindo que a seção
+  // "combine para comprar" sempre tenha conteúdo mesmo quando a busca orgânica falha.
+  scored.sort(
+    (a, b) =>
+      Number(b.score > 0) - Number(a.score > 0) ||
+      b.prioridade - a.prioridade ||
+      b.score - a.score
+  );
   return scored.slice(0, limit).map((s) => s.item);
 }

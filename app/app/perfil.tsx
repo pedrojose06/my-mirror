@@ -1,21 +1,75 @@
+import { useEffect, useRef, useState } from "react";
 import {
   StyleSheet,
   View,
   Text,
   TextInput,
   TouchableOpacity,
-  ScrollView,
   Alert,
+  Keyboard,
+  type LayoutChangeEvent,
 } from "react-native";
+import { KeyboardAwareScrollView } from "react-native-keyboard-aware-scroll-view";
 import { useRouter } from "expo-router";
 import { useAppStore } from "../src/state/useAppStore";
 import { signOut } from "../src/services/auth";
 import { COLORS, FONT_SIZE, OCASIOES, FORMALIDADES, SPACING } from "../src/constants";
 
+// Converte o texto livre de cores ("azul, branco") em lista, separando por
+// vírgula. O texto exibido fica em estado local (cru) para não "comer" vírgulas
+// e espaços enquanto o usuário digita.
+function parseColors(text: string): string[] {
+  return text
+    .split(",")
+    .map((s) => s.trim())
+    .filter(Boolean);
+}
+
 export default function PerfilScreen() {
   const router = useRouter();
   const { profile, setProfile, saveProfile } = useAppStore();
   const user = useAppStore((s) => s.user);
+
+  // Texto cru dos campos de cor (preserva vírgulas/espaços durante a digitação).
+  const [coresGostaText, setCoresGostaText] = useState(() =>
+    profile.cores_que_gosta.join(", ")
+  );
+  const [coresEvitaText, setCoresEvitaText] = useState(() =>
+    profile.cores_que_evita.join(", ")
+  );
+
+  // Ao focar um input, rola ele para o topo da área visível (logo abaixo do
+  // header). Guardamos a posição Y de cada campo (via onLayout) e rolamos até lá.
+  const scrollRef = useRef<KeyboardAwareScrollView>(null);
+  const fieldOffsets = useRef<Record<string, number>>({});
+
+  // Espaço extra no fim só enquanto o teclado está aberto (para qualquer campo
+  // poder subir ao topo). Com o teclado fechado, não sobra espaço vazio.
+  const [keyboardOpen, setKeyboardOpen] = useState(false);
+  const [focusedField, setFocusedField] = useState<string | null>(null);
+
+  useEffect(() => {
+    const show = Keyboard.addListener("keyboardDidShow", () => setKeyboardOpen(true));
+    const hide = Keyboard.addListener("keyboardDidHide", () => setKeyboardOpen(false));
+    return () => {
+      show.remove();
+      hide.remove();
+    };
+  }, []);
+
+  // Rola o campo focado para o topo SÓ depois que o teclado abriu (e o padding
+  // extra foi aplicado), garantindo que até o último campo consiga subir.
+  useEffect(() => {
+    if (!keyboardOpen || !focusedField) return;
+    const y = fieldOffsets.current[focusedField] ?? 0;
+    scrollRef.current?.scrollToPosition(0, Math.max(0, y - 12), true); // respiro abaixo do header
+  }, [keyboardOpen, focusedField]);
+
+  const onFieldLayout = (key: string) => (e: LayoutChangeEvent) => {
+    fieldOffsets.current[key] = e.nativeEvent.layout.y;
+  };
+
+  const handleFieldFocus = (key: string) => () => setFocusedField(key);
 
   const handleSave = async () => {
     await saveProfile();
@@ -28,10 +82,15 @@ export default function PerfilScreen() {
   };
 
   return (
-    <ScrollView
+    <KeyboardAwareScrollView
+      ref={scrollRef}
       style={styles.container}
-      contentContainerStyle={styles.content}
+      contentContainerStyle={[
+        styles.content,
+        { paddingBottom: keyboardOpen ? 600 : SPACING.xxl },
+      ]}
       keyboardShouldPersistTaps="handled"
+      enableAutomaticScroll={false}
     >
       {/* Conta */}
       <View style={styles.section}>
@@ -129,12 +188,13 @@ export default function PerfilScreen() {
       </View>
 
       {/* Estilo pessoal */}
-      <View style={styles.section}>
+      <View style={styles.section} onLayout={onFieldLayout("estilo")}>
         <Text style={styles.sectionLabel}>ESTILO PESSOAL</Text>
         <TextInput
           style={styles.textInput}
           value={profile.estilo}
           onChangeText={(val) => setProfile({ estilo: val })}
+          onFocus={handleFieldFocus("estilo")}
           placeholder="Ex: minimalista, despojado, clássico…"
           placeholderTextColor={COLORS.textMuted}
           accessibilityLabel="Descreva seu estilo pessoal"
@@ -143,46 +203,49 @@ export default function PerfilScreen() {
       </View>
 
       {/* Cores que gosta */}
-      <View style={styles.section}>
+      <View style={styles.section} onLayout={onFieldLayout("coresGosta")}>
         <Text style={styles.sectionLabel}>CORES QUE GOSTA</Text>
         <TextInput
           style={styles.textInput}
-          value={profile.cores_que_gosta.join(", ")}
-          onChangeText={(val) =>
-            setProfile({
-              cores_que_gosta: val.split(",").map((s) => s.trim()).filter(Boolean),
-            })
-          }
+          value={coresGostaText}
+          onChangeText={(val) => {
+            setCoresGostaText(val);
+            setProfile({ cores_que_gosta: parseColors(val) });
+          }}
+          onFocus={handleFieldFocus("coresGosta")}
           placeholder="Ex: azul, branco, cinza…"
           placeholderTextColor={COLORS.textMuted}
+          autoCapitalize="none"
           accessibilityLabel="Cores que você gosta, separadas por vírgula"
         />
       </View>
 
       {/* Cores que evita */}
-      <View style={styles.section}>
+      <View style={styles.section} onLayout={onFieldLayout("coresEvita")}>
         <Text style={styles.sectionLabel}>CORES QUE EVITA</Text>
         <TextInput
           style={styles.textInput}
-          value={profile.cores_que_evita.join(", ")}
-          onChangeText={(val) =>
-            setProfile({
-              cores_que_evita: val.split(",").map((s) => s.trim()).filter(Boolean),
-            })
-          }
+          value={coresEvitaText}
+          onChangeText={(val) => {
+            setCoresEvitaText(val);
+            setProfile({ cores_que_evita: parseColors(val) });
+          }}
+          onFocus={handleFieldFocus("coresEvita")}
           placeholder="Ex: amarelo, laranja…"
           placeholderTextColor={COLORS.textMuted}
+          autoCapitalize="none"
           accessibilityLabel="Cores que você evita, separadas por vírgula"
         />
       </View>
 
       {/* Observações extras */}
-      <View style={styles.section}>
+      <View style={styles.section} onLayout={onFieldLayout("observacoes")}>
         <Text style={styles.sectionLabel}>OBSERVAÇÕES EXTRAS (opcional)</Text>
         <TextInput
           style={[styles.textInput, styles.textInputMulti]}
           value={profile.observacoes_extras ?? ""}
           onChangeText={(val) => setProfile({ observacoes_extras: val })}
+          onFocus={handleFieldFocus("observacoes")}
           placeholder="Ex: prefiro roupas folgadas, evito decotes…"
           placeholderTextColor={COLORS.textMuted}
           multiline
@@ -201,7 +264,7 @@ export default function PerfilScreen() {
       >
         <Text style={styles.saveButtonText}>SALVAR PERFIL</Text>
       </TouchableOpacity>
-    </ScrollView>
+    </KeyboardAwareScrollView>
   );
 }
 
@@ -213,7 +276,8 @@ const styles = StyleSheet.create({
   content: {
     padding: SPACING.lg,
     gap: SPACING.lg,
-    paddingBottom: SPACING.xxl,
+    // paddingBottom é dinâmico (ver contentContainerStyle): grande só com o
+    // teclado aberto, para qualquer campo poder subir ao topo.
   },
   section: {
     gap: SPACING.sm,
