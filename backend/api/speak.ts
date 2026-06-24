@@ -1,6 +1,6 @@
 import type { VercelRequest, VercelResponse } from "@vercel/node";
 import { z } from "zod";
-import { speakText, speakStream, TTS_SAMPLE_RATE } from "../src/lib/ai";
+import { speakText, speakStream, TTS_SAMPLE_RATE } from "../src/lib/tts";
 
 const SpeakRequestSchema = z.object({ text: z.string().min(1).max(600) });
 
