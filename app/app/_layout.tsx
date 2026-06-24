@@ -6,9 +6,11 @@ import { COLORS } from "../src/constants";
 
 export default function RootLayout() {
   const loadProfile = useAppStore((s) => s.loadProfile);
+  const loadQuota = useAppStore((s) => s.loadQuota);
 
   useEffect(() => {
     loadProfile();
+    loadQuota();
   }, []);
 
   return (
@@ -33,6 +35,10 @@ export default function RootLayout() {
         <Stack.Screen
           name="perfil"
           options={{ title: "Meu Estilo" }}
+        />
+        <Stack.Screen
+          name="paywall"
+          options={{ title: "Luxai Premium", presentation: "modal" }}
         />
       </Stack>
     </>

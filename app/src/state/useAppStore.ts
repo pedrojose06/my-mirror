@@ -1,6 +1,8 @@
 import { create } from "zustand";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { StyleProfile, EvaluationResult, SuggestionItem } from "../constants/types";
+import { getEvaluationsUsed, consumeEvaluation } from "../services/deviceQuota";
+import { FREE_EVALUATION_LIMIT } from "../constants";
 
 const PROFILE_KEY = "@espelhoia:profile";
 
@@ -19,6 +21,10 @@ interface AppState {
   suggestions: SuggestionItem[];
   isFetchingSuggestions: boolean;
 
+  // Quota de avaliações gratuitas por aparelho
+  evaluationsUsed: number;
+  freeLimitReached: boolean;
+
   setProfile: (profile: Partial<StyleProfile>) => void;
   saveProfile: () => Promise<void>;
   loadProfile: () => Promise<void>;
@@ -26,6 +32,8 @@ interface AppState {
   setIsEvaluating: (val: boolean) => void;
   setSuggestions: (items: SuggestionItem[]) => void;
   setIsFetchingSuggestions: (val: boolean) => void;
+  loadQuota: () => Promise<void>;
+  registerEvaluation: () => Promise<void>;
 }
 
 export const useAppStore = create<AppState>((set, get) => ({
@@ -34,6 +42,8 @@ export const useAppStore = create<AppState>((set, get) => ({
   isEvaluating: false,
   suggestions: [],
   isFetchingSuggestions: false,
+  evaluationsUsed: 0,
+  freeLimitReached: false,
 
   setProfile: (updates) =>
     set((state) => ({ profile: { ...state.profile, ...updates } })),
@@ -55,4 +65,14 @@ export const useAppStore = create<AppState>((set, get) => ({
   setIsEvaluating: (val) => set({ isEvaluating: val }),
   setSuggestions: (items) => set({ suggestions: items }),
   setIsFetchingSuggestions: (val) => set({ isFetchingSuggestions: val }),
+
+  loadQuota: async () => {
+    const used = await getEvaluationsUsed();
+    set({ evaluationsUsed: used, freeLimitReached: used >= FREE_EVALUATION_LIMIT });
+  },
+
+  registerEvaluation: async () => {
+    const used = await consumeEvaluation();
+    set({ evaluationsUsed: used, freeLimitReached: used >= FREE_EVALUATION_LIMIT });
+  },
 }));
