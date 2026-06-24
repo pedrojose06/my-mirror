@@ -1,19 +1,40 @@
 import { z } from "zod";
+import { sanitizeUserText, sanitizeList } from "./sanitize";
+
+// Helper: string de texto livre já SANITIZADA na borda de validação.
+// Todo handler que usa o schema recebe o valor limpo (defesa em profundidade).
+const safeText = (max: number) =>
+  z
+    .string()
+    .max(max * 2) // limite bruto generoso antes de sanitizar/cortar
+    .transform((v) => sanitizeUserText(v, max));
+
+const safeColorList = z
+  .array(z.string().max(80))
+  .max(20)
+  .default([])
+  .transform((arr) => sanitizeList(arr, 10, 40));
 
 // Perfil de estilo do usuário (enviado pelo app em cada chamada)
 export const StyleProfileSchema = z.object({
   // Ocasião: presets (trabalho/casual/evento/esporte) ou texto livre ("Outra")
-  ocasiao: z.string().min(1).max(50),
-  estilo: z.string().max(100).default(""), // ex: "minimalista", "despojado"; pode ficar vazio
-  cores_que_gosta: z.array(z.string()).max(10).default([]),
-  cores_que_evita: z.array(z.string()).max(10).default([]),
+  ocasiao: safeText(50).pipe(z.string().min(1, "ocasião vazia após sanitização")),
+  estilo: safeText(100).optional().default(""),
+  cores_que_gosta: safeColorList,
+  cores_que_evita: safeColorList,
   formalidade: z.enum(["baixa", "média", "alta"]),
-  observacoes_extras: z.string().max(300).optional(),
+  observacoes_extras: safeText(300).optional(),
 });
 
 // Payload de entrada da rota /api/evaluate
 export const EvaluateRequestSchema = z.object({
-  imagem_base64: z.string().min(100), // JPEG em base64
+  // JPEG em base64: só aceita caracteres base64 e limita tamanho (~8MB de chars
+  // ≈ imagem de ~6MB) para evitar payloads gigantes que estourem custo/memória.
+  imagem_base64: z
+    .string()
+    .min(100)
+    .max(8_000_000)
+    .regex(/^[A-Za-z0-9+/=\s]+$/, "imagem_base64 inválida"),
   perfil: StyleProfileSchema,
 });
 
@@ -42,8 +63,12 @@ export const SuggestionItemSchema = z.object({
 });
 
 // Payload de entrada da rota /api/suggestions
+// descricao_look vem do cliente (que recebeu da avaliação) — tratamos como
+// NÃO confiável e sanitizamos como qualquer outro texto livre.
 export const SuggestionsRequestSchema = z.object({
-  descricao_look: z.string().min(1).max(800),
+  descricao_look: safeText(300).pipe(
+    z.string().min(1, "descrição vazia após sanitização")
+  ),
   perfil: StyleProfileSchema,
 });
 
