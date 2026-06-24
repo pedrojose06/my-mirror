@@ -1,7 +1,9 @@
 import { create } from "zustand";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import type { Session, User } from "@supabase/supabase-js";
 import { StyleProfile, EvaluationResult, SuggestionItem } from "../constants/types";
 import { getEvaluationsUsed, consumeEvaluation } from "../services/deviceQuota";
+import { supabase } from "../services/supabase";
 import { FREE_EVALUATION_LIMIT } from "../constants";
 
 const PROFILE_KEY = "@espelhoia:profile";
@@ -25,6 +27,11 @@ interface AppState {
   evaluationsUsed: number;
   freeLimitReached: boolean;
 
+  // Autenticação (Supabase)
+  session: Session | null;
+  user: User | null;
+  authReady: boolean;
+
   setProfile: (profile: Partial<StyleProfile>) => void;
   saveProfile: () => Promise<void>;
   loadProfile: () => Promise<void>;
@@ -34,6 +41,7 @@ interface AppState {
   setIsFetchingSuggestions: (val: boolean) => void;
   loadQuota: () => Promise<void>;
   registerEvaluation: () => Promise<void>;
+  initAuth: () => Promise<void>;
 }
 
 export const useAppStore = create<AppState>((set, get) => ({
@@ -44,6 +52,9 @@ export const useAppStore = create<AppState>((set, get) => ({
   isFetchingSuggestions: false,
   evaluationsUsed: 0,
   freeLimitReached: false,
+  session: null,
+  user: null,
+  authReady: false,
 
   setProfile: (updates) =>
     set((state) => ({ profile: { ...state.profile, ...updates } })),
@@ -74,5 +85,18 @@ export const useAppStore = create<AppState>((set, get) => ({
   registerEvaluation: async () => {
     const used = await consumeEvaluation();
     set({ evaluationsUsed: used, freeLimitReached: used >= FREE_EVALUATION_LIMIT });
+  },
+
+  initAuth: async () => {
+    const { data } = await supabase.auth.getSession();
+    set({
+      session: data.session,
+      user: data.session?.user ?? null,
+      authReady: true,
+    });
+    // Mantém o estado em sincronia com login/logout/refresh de token.
+    supabase.auth.onAuthStateChange((_event, session) => {
+      set({ session, user: session?.user ?? null });
+    });
   },
 }));

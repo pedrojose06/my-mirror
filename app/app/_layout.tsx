@@ -7,10 +7,12 @@ import { COLORS } from "../src/constants";
 export default function RootLayout() {
   const loadProfile = useAppStore((s) => s.loadProfile);
   const loadQuota = useAppStore((s) => s.loadQuota);
+  const initAuth = useAppStore((s) => s.initAuth);
 
   useEffect(() => {
     loadProfile();
     loadQuota();
+    initAuth();
   }, []);
 
   return (
@@ -39,6 +41,14 @@ export default function RootLayout() {
         <Stack.Screen
           name="paywall"
           options={{ title: "Luxai Premium", presentation: "modal" }}
+        />
+        <Stack.Screen
+          name="login"
+          options={{ title: "Entrar", presentation: "modal" }}
+        />
+        <Stack.Screen
+          name="cadastro"
+          options={{ title: "Criar conta", presentation: "modal" }}
         />
       </Stack>
     </>
