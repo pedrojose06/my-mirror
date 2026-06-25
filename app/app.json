@@ -8,14 +8,14 @@
     "icon": "./assets/brand/icon.png",
     "ios": {
       "supportsTablet": false,
-      "bundleIdentifier": "com.espelhoia.app",
+      "bundleIdentifier": "com.luxai.app",
       "infoPlist": {
         "NSCameraUsageDescription": "O Luxai usa a câmera para avaliar seu look e dar feedback personalizado.",
         "NSMicrophoneUsageDescription": "Necessário para acessar a câmera no iOS."
       }
     },
     "android": {
-      "package": "com.espelhoia.app",
+      "package": "com.luxai.app",
       "versionCode": 20,
       "softwareKeyboardLayoutMode": "resize",
       "adaptiveIcon": {
