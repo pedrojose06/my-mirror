@@ -12,3 +12,5 @@ android/
 # Binários de release (não versionar)
 *.aab
 *.apk
+
+CLAUDE.md
