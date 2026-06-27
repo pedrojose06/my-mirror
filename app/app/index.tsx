@@ -189,10 +189,15 @@ function CameraScreen({
         ref={cameraRef}
         style={StyleSheet.absoluteFill}
         device={device}
-        isActive={isFocused}
+        isActive={isFocused && mode !== "idle"}
         photo={true}
         frameProcessor={frameProcessor}
       />
+
+      {/* Fundo de marca enquanto câmera está inativa */}
+      {mode === "idle" && (
+        <View style={[StyleSheet.absoluteFill, styles.idleBackground]} />
+      )}
 
       <View style={styles.overlay}>
         {/* Marca: ISOLOGO centralizado no topo */}
@@ -411,6 +416,7 @@ const styles = StyleSheet.create({
     fontWeight: "700",
     letterSpacing: 2,
   },
+  idleBackground: { backgroundColor: COLORS.background },
   evaluatingIndicator: { alignItems: "center", gap: SPACING.sm },
   evaluatingText: {
     color: COLORS.accent,

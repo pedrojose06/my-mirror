@@ -16,7 +16,7 @@
     },
     "android": {
       "package": "com.luxai.app",
-      "versionCode": 20,
+      "versionCode": 21,
       "softwareKeyboardLayoutMode": "resize",
       "adaptiveIcon": {
         "foregroundImage": "./assets/brand/adaptive-icon.png",
@@ -46,7 +46,8 @@
       ],
       "react-native-fast-tflite",
       "expo-audio",
-      "expo-web-browser"
+      "expo-web-browser",
+      "./plugins/withRemoveForegroundService"
     ],
     "scheme": "luxai",
     "experiments": {
