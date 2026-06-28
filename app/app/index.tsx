@@ -189,12 +189,16 @@ function CameraScreen({
         ref={cameraRef}
         style={StyleSheet.absoluteFill}
         device={device}
-        isActive={isFocused && mode !== "idle"}
+        isActive={isFocused}
         photo={true}
         frameProcessor={frameProcessor}
       />
 
-      {/* Fundo de marca enquanto câmera está inativa */}
+      {/* Fundo de marca enquanto câmera está inativa. O overlay opaco já
+          esconde o feed na abertura (exigência do Play), então a câmera fica
+          sempre ativa enquanto a tela está focada — alternar isActive
+          false→true deixa o preview preto no Android (bug do vision-camera).
+          ponytail: overlay esconde o feed; não desativar a câmera junto. */}
       {mode === "idle" && (
         <View style={[StyleSheet.absoluteFill, styles.idleBackground]} />
       )}
