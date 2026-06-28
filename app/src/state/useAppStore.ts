@@ -8,6 +8,30 @@ import { FREE_EVALUATION_LIMIT } from "../constants";
 
 const PROFILE_KEY = "@espelhoia:profile";
 
+// Premium ignora a trava de avaliações gratuitas.
+function limitReached(used: number, isPremium: boolean): boolean {
+  return !isPremium && used >= FREE_EVALUATION_LIMIT;
+}
+
+// Lê a flag is_premium do perfil do usuário e re-avalia a trava.
+// Deslogado / sem linha em profiles => não-premium (default false).
+async function syncPremium(
+  userId: string | undefined,
+  set: (partial: Partial<AppState>) => void,
+  get: () => AppState
+): Promise<void> {
+  let isPremium = false;
+  if (userId) {
+    const { data } = await supabase
+      .from("profiles")
+      .select("is_premium")
+      .eq("id", userId)
+      .maybeSingle();
+    isPremium = data?.is_premium === true;
+  }
+  set({ isPremium, freeLimitReached: limitReached(get().evaluationsUsed, isPremium) });
+}
+
 const DEFAULT_PROFILE: StyleProfile = {
   ocasiao: "casual",
   estilo: "minimalista",
@@ -26,6 +50,7 @@ interface AppState {
   // Quota de avaliações gratuitas por aparelho
   evaluationsUsed: number;
   freeLimitReached: boolean;
+  isPremium: boolean;
 
   // Autenticação (Supabase)
   session: Session | null;
@@ -52,6 +77,7 @@ export const useAppStore = create<AppState>((set, get) => ({
   isFetchingSuggestions: false,
   evaluationsUsed: 0,
   freeLimitReached: false,
+  isPremium: false,
   session: null,
   user: null,
   authReady: false,
@@ -79,12 +105,12 @@ export const useAppStore = create<AppState>((set, get) => ({
 
   loadQuota: async () => {
     const used = await getEvaluationsUsed();
-    set({ evaluationsUsed: used, freeLimitReached: used >= FREE_EVALUATION_LIMIT });
+    set({ evaluationsUsed: used, freeLimitReached: limitReached(used, get().isPremium) });
   },
 
   registerEvaluation: async () => {
     const used = await consumeEvaluation();
-    set({ evaluationsUsed: used, freeLimitReached: used >= FREE_EVALUATION_LIMIT });
+    set({ evaluationsUsed: used, freeLimitReached: limitReached(used, get().isPremium) });
   },
 
   initAuth: async () => {
@@ -94,9 +120,11 @@ export const useAppStore = create<AppState>((set, get) => ({
       user: data.session?.user ?? null,
       authReady: true,
     });
+    await syncPremium(data.session?.user?.id, set, get);
     // Mantém o estado em sincronia com login/logout/refresh de token.
     supabase.auth.onAuthStateChange((_event, session) => {
       set({ session, user: session?.user ?? null });
+      void syncPremium(session?.user?.id, set, get);
     });
   },
 }));
