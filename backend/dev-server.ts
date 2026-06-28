@@ -26,7 +26,7 @@ const server = createServer(async (req, res) => {
   // CORS (espelha o vercel.json)
   res.setHeader("Access-Control-Allow-Origin", "*");
   res.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS");
-  res.setHeader("Access-Control-Allow-Headers", "Content-Type, X-Device-Id");
+  res.setHeader("Access-Control-Allow-Headers", "Content-Type, X-Device-Id, Authorization");
 
   // Rotas: /api/evaluate e /api/speak
   const handler = req.url?.startsWith("/api/evaluate")

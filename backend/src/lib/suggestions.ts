@@ -3,6 +3,7 @@ import {
   SEARCH_FALLBACK_MODELS,
   MOCK_ENABLED,
   createGenAI,
+  resolveApiKey,
 } from "./geminiConfig";
 import {
   buildSuggestionsSystemInstruction,
@@ -80,6 +81,7 @@ function parseJsonArray(text: string): any[] {
 export async function findSuggestions(
   descricaoLook: string,
   perfil: StyleProfile,
+  loggedIn: boolean,
   limit = 4
 ): Promise<SuggestionItem[]> {
   if (MOCK_ENABLED) {
@@ -87,7 +89,8 @@ export async function findSuggestions(
     return mockSuggestions().slice(0, limit);
   }
 
-  const ai = createGenAI();
+  // Sugestões acompanham a avaliação: key premium (logado) ou free (deslogado).
+  const ai = createGenAI(resolveApiKey(loggedIn, "eval"));
   const systemInstruction = buildSuggestionsSystemInstruction();
   const prompt = buildSuggestionsPrompt(descricaoLook, perfil, limit);
 

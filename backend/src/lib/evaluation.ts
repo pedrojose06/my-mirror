@@ -4,7 +4,7 @@ import {
   EvaluationResult,
 } from "./schema";
 import { SYSTEM_PROMPT, buildUserPromptText } from "./promptBuilder";
-import { MODEL, MOCK_ENABLED, createGenAI } from "./geminiConfig";
+import { MODEL, MOCK_ENABLED, createGenAI, resolveApiKey } from "./geminiConfig";
 
 // Remove cercas de markdown (```json ... ```) que o modelo às vezes adiciona.
 function stripJsonFences(text: string): string {
@@ -34,7 +34,8 @@ function mockEvaluation(perfil: StyleProfile): EvaluationResult {
 // Avalia o look a partir da imagem (base64) + perfil de estilo.
 export async function evaluateLook(
   perfil: StyleProfile,
-  imageBase64: string
+  imageBase64: string,
+  loggedIn: boolean
 ): Promise<EvaluationResult> {
   if (MOCK_ENABLED) {
     // Simula latência de rede para o app se comportar como em produção
@@ -42,7 +43,8 @@ export async function evaluateLook(
     return mockEvaluation(perfil);
   }
 
-  const ai = createGenAI();
+  // Logado: key premium de avaliação. Deslogado: key free-tier.
+  const ai = createGenAI(resolveApiKey(loggedIn, "eval"));
 
   const response = await ai.models.generateContent({
     model: MODEL,

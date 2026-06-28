@@ -4,6 +4,7 @@ import {
   TTS_TEMPERATURE,
   TTS_RATE,
   createGenAI,
+  resolveApiKey,
 } from "./geminiConfig";
 
 // Frequência do PCM exposta para o cabeçalho WAV de streaming.
@@ -53,8 +54,9 @@ function pcmToWav(pcm: Buffer, sampleRate: number): Buffer {
 }
 
 // Gera a narração natural do texto via Gemini TTS. Retorna um WAV em base64.
-export async function speakText(text: string): Promise<string> {
-  const ai = createGenAI();
+export async function speakText(text: string, loggedIn: boolean): Promise<string> {
+  // Voz neural é exclusiva de logado (premium) -> sempre a key de voz.
+  const ai = createGenAI(resolveApiKey(loggedIn, "tts"));
 
   const response = await ai.models.generateContent({
     model: TTS_MODEL,
@@ -73,8 +75,11 @@ export async function speakText(text: string): Promise<string> {
 
 // Gera a narração em STREAM: vai produzindo os pedaços de PCM conforme o
 // Gemini sintetiza, para o app começar a tocar antes do áudio terminar.
-export async function* speakStream(text: string): AsyncGenerator<Buffer> {
-  const ai = createGenAI();
+export async function* speakStream(
+  text: string,
+  loggedIn: boolean
+): AsyncGenerator<Buffer> {
+  const ai = createGenAI(resolveApiKey(loggedIn, "tts"));
 
   const stream = await ai.models.generateContentStream({
     model: TTS_MODEL,

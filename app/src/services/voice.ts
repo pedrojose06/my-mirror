@@ -1,6 +1,7 @@
 import { createAudioPlayer, setAudioModeAsync, AudioPlayer } from "expo-audio";
 import * as Speech from "expo-speech";
 import { API_BASE_URL } from "../constants";
+import { supabase } from "./supabase";
 
 // Tempo máximo aguardando o stream começar antes de cair pra voz do sistema.
 const STREAM_START_TIMEOUT_MS = 7000;
@@ -38,9 +39,21 @@ export async function speak(text: string, onStart?: () => void): Promise<void> {
     activePlayer = null;
   }
 
+  // Voz neural é exclusiva de usuário logado (premium). Sem sessão, usa a voz
+  // do sistema (grátis) e nem chama o backend — economiza a cota free-tier.
+  const { data } = await supabase.auth.getSession();
+  const token = data.session?.access_token;
+  if (!token) {
+    fallback();
+    return;
+  }
+
   try {
     const url = `${API_BASE_URL}/api/speak?text=${encodeURIComponent(text)}`;
-    const player = createAudioPlayer({ uri: url });
+    const player = createAudioPlayer({
+      uri: url,
+      headers: { Authorization: `Bearer ${token}` },
+    });
     activePlayer = player;
 
     const sub = player.addListener("playbackStatusUpdate", (s: any) => {

@@ -1,6 +1,7 @@
 import type { VercelRequest, VercelResponse } from "@vercel/node";
 import { z } from "zod";
 import { speakText, speakStream, TTS_SAMPLE_RATE } from "../src/lib/tts";
+import { isLoggedIn } from "../src/lib/auth";
 
 const SpeakRequestSchema = z.object({ text: z.string().min(1).max(600) });
 
@@ -42,12 +43,17 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     if (!text || text.length > 600) {
       return res.status(400).json({ error: "Parâmetro 'text' inválido" });
     }
+    // Voz neural é exclusiva de logado (premium). Deslogado usa a voz do
+    // sistema no app, que nem chega aqui. 401 é a rede de segurança.
+    if (!(await isLoggedIn(req))) {
+      return res.status(401).json({ error: "Voz neural requer login" });
+    }
     res.statusCode = 200;
     res.setHeader("Content-Type", "audio/wav");
     res.setHeader("Cache-Control", "no-store");
     res.write(streamingWavHeader(TTS_SAMPLE_RATE));
     try {
-      for await (const pcm of speakStream(text)) {
+      for await (const pcm of speakStream(text, true)) {
         res.write(pcm);
       }
     } catch (err) {
@@ -62,8 +68,11 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     if (!parsed.success) {
       return res.status(400).json({ error: "Payload inválido" });
     }
+    if (!(await isLoggedIn(req))) {
+      return res.status(401).json({ error: "Voz neural requer login" });
+    }
     try {
-      const audioBase64 = await speakText(parsed.data.text);
+      const audioBase64 = await speakText(parsed.data.text, true);
       return res.status(200).json({ audioBase64, mimeType: "audio/wav" });
     } catch (err) {
       console.error("[speak POST] Erro:", err);

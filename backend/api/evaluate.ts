@@ -2,6 +2,7 @@ import type { VercelRequest, VercelResponse } from "@vercel/node";
 import { EvaluateRequestSchema } from "../src/lib/schema";
 import { evaluateLook } from "../src/lib/evaluation";
 import { rateLimit, clientKey } from "../src/lib/rateLimit";
+import { isLoggedIn } from "../src/lib/auth";
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   // CORS preflight
@@ -31,8 +32,11 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
   const { imagem_base64, perfil } = parseResult.data;
 
+  // Logado -> key premium de avaliação. Deslogado -> key free-tier.
+  const loggedIn = await isLoggedIn(req);
+
   try {
-    const resultado = await evaluateLook(perfil, imagem_base64);
+    const resultado = await evaluateLook(perfil, imagem_base64, loggedIn);
     return res.status(200).json(resultado);
   } catch (err) {
     console.error("[evaluate] Erro:", err);

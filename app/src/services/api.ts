@@ -1,6 +1,16 @@
 import { EVALUATE_ENDPOINT, SUGGESTIONS_ENDPOINT } from "../constants";
 import { StyleProfile, EvaluationResult, SuggestionItem } from "../constants/types";
 import { getDeviceId } from "./deviceQuota";
+import { supabase } from "./supabase";
+
+// Header de auth quando há sessão: o backend valida o token e, se válido,
+// usa as keys premium (avaliação/voz). Sem sessão, vai vazio -> backend usa
+// a key free-tier.
+async function authHeader(): Promise<Record<string, string>> {
+  const { data } = await supabase.auth.getSession();
+  const token = data.session?.access_token;
+  return token ? { Authorization: `Bearer ${token}` } : {};
+}
 
 // POST JSON genérico: serializa o corpo e lança um Error legível em caso de falha.
 async function postJson<T>(
@@ -31,7 +41,7 @@ export async function evaluateLook(
   return postJson<EvaluationResult>(
     EVALUATE_ENDPOINT,
     { imagem_base64: imageBase64, perfil },
-    { "X-Device-Id": deviceId }
+    { "X-Device-Id": deviceId, ...(await authHeader()) }
   );
 }
 
@@ -44,7 +54,8 @@ export async function fetchSuggestions(
   try {
     const data = await postJson<{ sugestoes?: SuggestionItem[] }>(
       SUGGESTIONS_ENDPOINT,
-      { descricao_look, perfil }
+      { descricao_look, perfil },
+      await authHeader()
     );
     return data.sugestoes ?? [];
   } catch (err) {
