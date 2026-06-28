@@ -194,6 +194,12 @@ function CameraScreen({
         frameProcessor={frameProcessor}
       />
 
+      {/* App de espelho: o feed da câmera fica sempre visível enquanto a tela
+          está focada. isActive não alterna false→true (isso deixa o preview
+          preto no Android — bug do vision-camera). Não cobrir o feed com um
+          fundo opaco no idle: era essa cobertura que dava a "câmera preta".
+          ponytail: feed sempre à mostra; só a UI fica por cima. */}
+
       <View style={styles.overlay}>
         {/* Marca: ISOLOGO centralizado no topo */}
         <Image
