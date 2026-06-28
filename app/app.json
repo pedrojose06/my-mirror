@@ -16,7 +16,7 @@
     },
     "android": {
       "package": "com.luxai.app",
-      "versionCode": 22,
+      "versionCode": 23,
       "softwareKeyboardLayoutMode": "resize",
       "adaptiveIcon": {
         "foregroundImage": "./assets/brand/adaptive-icon.png",
