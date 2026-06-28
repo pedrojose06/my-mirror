@@ -9,22 +9,30 @@ import {
 } from "react-native";
 import { useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
-import { LuxaiLoader } from "../src/components/LuxaiLoader";
-import { OccasionWheel } from "../src/components/OccasionWheel";
-import { useAppStore } from "../src/state/useAppStore";
-import { evaluateLook, fetchSuggestions } from "../src/services/api";
-import { speak } from "../src/services/voice";
+import { LuxaiLoader } from "../components/LuxaiLoader";
+import { OccasionWheel } from "../components/OccasionWheel";
+import { useAppStore } from "../state/useAppStore";
+import { evaluateLook, fetchSuggestions } from "../services/api";
+import { speak } from "../services/voice";
+import { usePoseLandmarkerWeb } from "../hooks/usePoseDetectionWeb";
 import {
   CAPTURE_IMAGE_WIDTH,
   CAPTURE_IMAGE_COMPRESS,
+  POSE_GUIDANCE,
+  FULL_STREAK_TO_CAPTURE,
+  type PoseStatus,
   type CaptureMode,
-} from "../src/constants/pose";
-import { COLORS, FONT_SIZE, SPACING } from "../src/constants";
+} from "../constants/pose";
+import { COLORS, FONT_SIZE, SPACING } from "../constants";
 
-// ponytail: versão web do "espelho". Sem vision-camera/tflite/pose detection
-// (não rodam no navegador) — getUserMedia para preview ao vivo + snapshot via
-// <canvas>.toDataURL. O AVALIAR captura na hora; sem alinhamento automático.
-// Câmera frontal fixa; flip omitido (web = espelho frontal). Add flip se pedirem.
+// ponytail: versão web do "espelho". getUserMedia para preview ao vivo +
+// snapshot via <canvas>.toDataURL. O AVALIAR entra em alinhamento e roda
+// detecção de pose no navegador (MediaPipe via CDN, ver usePoseDetectionWeb)
+// até detectar o corpo inteiro — espelhando a UX do nativo. Câmera frontal
+// fixa; flip omitido (web = espelho frontal). Add flip se pedirem.
+
+// Sem detectar o corpo em ~15s: aborta o alinhamento sem enviar.
+const ALIGN_TIMEOUT_MS = 15000;
 
 type CamState = "loading" | "ready" | "denied" | "unsupported";
 
@@ -34,6 +42,15 @@ export default function MirrorScreenWeb() {
   const streamRef = useRef<MediaStream | null>(null);
   const [camState, setCamState] = useState<CamState>("loading");
   const [mode, setMode] = useState<CaptureMode>("idle");
+  const [poseStatus, setPoseStatus] = useState<PoseStatus>("none");
+
+  const { error: poseError, detect } = usePoseLandmarkerWeb();
+  // Loop de alinhamento (rAF) + timeout de segurança + contadores.
+  const rafRef = useRef<number | null>(null);
+  const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const fullStreak = useRef(0);
+  const capturingRef = useRef(false);
+  const lastStatusRef = useRef<PoseStatus>("none");
 
   const profile = useAppStore((s) => s.profile);
   const lastResult = useAppStore((s) => s.lastResult);
@@ -89,13 +106,22 @@ export default function MirrorScreenWeb() {
     return canvas.toDataURL("image/jpeg", CAPTURE_IMAGE_COMPRESS).split(",")[1] ?? null;
   }, []);
 
-  // ponytail: orquestração espelhada de useLookEvaluation (nativo) — duplicada
-  // de propósito para não tocar no hook/index nativo (vision-camera intocado).
-  const handleAvaliar = useCallback(async () => {
-    if (freeLimitReached) {
-      router.push("/paywall");
-      return;
-    }
+  const stopAligningLoop = useCallback(() => {
+    if (rafRef.current != null) cancelAnimationFrame(rafRef.current);
+    if (timeoutRef.current != null) clearTimeout(timeoutRef.current);
+    rafRef.current = null;
+    timeoutRef.current = null;
+    fullStreak.current = 0;
+    lastStatusRef.current = "none";
+  }, []);
+
+  // Para a detecção e os timers ao desmontar a tela.
+  useEffect(() => stopAligningLoop, [stopAligningLoop]);
+
+  // Captura o frame e envia para avaliação (espelha useLookEvaluation nativo).
+  // Duplicado de propósito para não tocar no hook/index nativo (vision-camera
+  // intocado).
+  const runEvaluation = useCallback(async () => {
     setMode("evaluating");
     setIsEvaluating(true);
     setSuggestions([]);
@@ -124,9 +150,74 @@ export default function MirrorScreenWeb() {
       });
     } finally {
       setIsEvaluating(false);
+      capturingRef.current = false;
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [profile, freeLimitReached]);
+  }, [profile]);
+
+  // AVALIAR → alinhamento: roda a detecção no <video> e só captura quando vê o
+  // corpo inteiro ("full") estável por FULL_STREAK_TO_CAPTURE frames.
+  const handleAvaliar = useCallback(() => {
+    if (freeLimitReached) {
+      router.push("/paywall");
+      return;
+    }
+    // Detector de pose indisponível (ex.: CDN/WebGL bloqueado): não trava a web,
+    // captura na hora como antes.
+    if (poseError) {
+      capturingRef.current = true;
+      runEvaluation();
+      return;
+    }
+
+    capturingRef.current = false;
+    fullStreak.current = 0;
+    lastStatusRef.current = "none";
+    setPoseStatus("none");
+    setMode("aligning");
+
+    timeoutRef.current = setTimeout(() => {
+      stopAligningLoop();
+      setMode("idle");
+      setPoseStatus("none");
+      speak(
+        "Não consegui te ver de corpo inteiro. Afaste a câmera e tente avaliar de novo.",
+        () => {}
+      );
+    }, ALIGN_TIMEOUT_MS);
+
+    const tick = () => {
+      if (capturingRef.current) return;
+      const video = videoRef.current;
+      const status = video ? detect(video) : null;
+      if (status != null) {
+        if (status !== lastStatusRef.current) {
+          lastStatusRef.current = status;
+          setPoseStatus(status);
+        }
+        if (status === "full") {
+          fullStreak.current += 1;
+          if (fullStreak.current >= FULL_STREAK_TO_CAPTURE) {
+            capturingRef.current = true;
+            stopAligningLoop();
+            runEvaluation();
+            return;
+          }
+        } else {
+          fullStreak.current = 0;
+        }
+      }
+      rafRef.current = requestAnimationFrame(tick);
+    };
+    rafRef.current = requestAnimationFrame(tick);
+  }, [freeLimitReached, poseError, detect, runEvaluation, stopAligningLoop, router]);
+
+  const cancelAligning = useCallback(() => {
+    stopAligningLoop();
+    capturingRef.current = false;
+    setMode("idle");
+    setPoseStatus("none");
+  }, [stopAligningLoop]);
 
   if (camState === "unsupported" || camState === "denied") {
     return (
@@ -170,7 +261,7 @@ export default function MirrorScreenWeb() {
 
       <View style={styles.overlay} pointerEvents="box-none">
         <Image
-          source={require("../assets/brand/isologo.png")}
+          source={require("../../assets/brand/isologo.png")}
           style={styles.brandLogo}
           resizeMode="contain"
           accessibilityLabel="Luxai"
@@ -192,6 +283,13 @@ export default function MirrorScreenWeb() {
           )}
         </View>
 
+        {/* Dica de enquadramento durante o alinhamento (mesma do nativo) */}
+        {mode === "aligning" && (
+          <View style={styles.guidanceBox} accessibilityLiveRegion="polite">
+            <Text style={styles.guidanceText}>{POSE_GUIDANCE[poseStatus]}</Text>
+          </View>
+        )}
+
         <View style={styles.captureArea} pointerEvents="box-none">
           {mode === "evaluating" ? (
             <View style={styles.evaluatingIndicator} accessibilityLiveRegion="polite">
@@ -200,17 +298,29 @@ export default function MirrorScreenWeb() {
             </View>
           ) : (
             <>
-              <OccasionWheel />
+              {mode === "idle" && <OccasionWheel />}
               <View style={styles.captureRow}>
-                <TouchableOpacity
-                  style={styles.captureButton}
-                  onPress={handleAvaliar}
-                  disabled={camState !== "ready"}
-                  accessibilityLabel="Avaliar look"
-                  accessibilityRole="button"
-                >
-                  <Text style={styles.captureButtonText}>AVALIAR</Text>
-                </TouchableOpacity>
+                {mode === "aligning" ? (
+                  <TouchableOpacity
+                    style={[styles.captureButton, styles.cancelButton]}
+                    onPress={cancelAligning}
+                    accessibilityLabel="Cancelar"
+                    accessibilityRole="button"
+                  >
+                    <Text style={styles.cancelButtonText}>CANCELAR</Text>
+                  </TouchableOpacity>
+                ) : (
+                  <TouchableOpacity
+                    style={styles.captureButton}
+                    onPress={handleAvaliar}
+                    disabled={camState !== "ready"}
+                    accessibilityLabel="Avaliar look"
+                    accessibilityHint="Aguarda você aparecer de corpo inteiro e captura automaticamente"
+                    accessibilityRole="button"
+                  >
+                    <Text style={styles.captureButtonText}>AVALIAR</Text>
+                  </TouchableOpacity>
+                )}
 
                 <TouchableOpacity
                   style={styles.sideIcon}
@@ -293,6 +403,33 @@ const styles = StyleSheet.create({
     lineHeight: 38,
   },
   notaVer: { color: COLORS.textSecondary, fontSize: FONT_SIZE.xs },
+  guidanceBox: {
+    alignSelf: "center",
+    backgroundColor: "rgba(10,10,10,0.8)",
+    borderRadius: 16,
+    paddingVertical: SPACING.md,
+    paddingHorizontal: SPACING.lg,
+    marginHorizontal: SPACING.lg,
+    borderWidth: 1,
+    borderColor: COLORS.accent,
+  },
+  guidanceText: {
+    color: COLORS.textPrimary,
+    fontSize: FONT_SIZE.md,
+    textAlign: "center",
+    fontWeight: "600",
+  },
+  cancelButton: {
+    backgroundColor: "rgba(10,10,10,0.85)",
+    borderWidth: 1,
+    borderColor: COLORS.border,
+  },
+  cancelButtonText: {
+    color: COLORS.textPrimary,
+    fontSize: FONT_SIZE.md,
+    fontWeight: "700",
+    letterSpacing: 2,
+  },
   sideIcon: {
     width: 56,
     height: 56,
