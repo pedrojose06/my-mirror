@@ -3,6 +3,7 @@ import { SuggestionsRequestSchema } from "../src/lib/schema";
 import { findSuggestions } from "../src/lib/suggestions";
 import { matchedSponsored } from "../src/lib/ads";
 import { rateLimit, clientKey } from "../src/lib/rateLimit";
+import { isLoggedIn } from "../src/lib/auth";
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   res.setHeader("Access-Control-Allow-Origin", "*");
@@ -31,9 +32,10 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
   // Orgânicos via Gemini grounding — isolado: se falhar (ex: 503 do modelo),
   // seguimos só com os patrocinados em vez de derrubar a resposta inteira.
+  const loggedIn = await isLoggedIn(req);
   let organic: Awaited<ReturnType<typeof findSuggestions>> = [];
   try {
-    organic = await findSuggestions(descricao_look, perfil, 4);
+    organic = await findSuggestions(descricao_look, perfil, loggedIn, 4);
   } catch (err) {
     console.error("[suggestions] busca orgânica falhou (seguindo só com patrocinados):", err);
   }

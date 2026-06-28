@@ -30,16 +30,42 @@ export const TTS_TEMPERATURE = Number(process.env.GEMINI_TTS_TEMPERATURE ?? 1.2)
 export const TTS_RATE = 24000; // Gemini TTS devolve PCM 16-bit mono a 24kHz
 
 // Modo mock: devolve respostas falsas sem chamar a API (testar sem custo/sem key).
-// Ativado por MOCK_AI=true ou quando não há GEMINI_API_KEY configurada.
+// Ativado por MOCK_AI=true ou quando não há nenhuma key configurada.
 export const MOCK_ENABLED =
-  process.env.MOCK_AI === "true" || !process.env.GEMINI_API_KEY;
+  process.env.MOCK_AI === "true" ||
+  (!process.env.GEMINI_API_KEY && !process.env.GEMINI_API_KEY_FREE);
+
+export type ApiKeyPurpose = "eval" | "tts";
 
 /**
- * Cria um cliente do Gemini. Lança se a chave não estiver configurada —
- * os fluxos reais só chegam aqui quando MOCK_ENABLED é falso (logo há key).
+ * Seleciona a API key do Gemini conforme o estado de login e a finalidade.
+ *
+ * - LOGADO (premium): avaliação/sugestões usam GEMINI_API_KEY; voz usa
+ *   GEMINI_TTS_API_KEY. (futuramente: feature paga)
+ * - DESLOGADO (free): tudo usa GEMINI_API_KEY_FREE.
+ *
+ * Os fallbacks para GEMINI_API_KEY mantêm o setup de chave única funcionando
+ * (se TTS/FREE não estiverem definidas, cai na key principal).
  */
-export function createGenAI(): GoogleGenAI {
-  const apiKey = process.env.GEMINI_API_KEY;
-  if (!apiKey) throw new Error("GEMINI_API_KEY não configurada");
+export function resolveApiKey(loggedIn: boolean, purpose: ApiKeyPurpose): string {
+  let key: string | undefined;
+  if (!loggedIn) {
+    key = process.env.GEMINI_API_KEY_FREE || process.env.GEMINI_API_KEY;
+  } else if (purpose === "tts") {
+    key = process.env.GEMINI_TTS_API_KEY || process.env.GEMINI_API_KEY;
+  } else {
+    key = process.env.GEMINI_API_KEY;
+  }
+  if (!key) {
+    throw new Error("Nenhuma GEMINI_API_KEY configurada para esta requisição");
+  }
+  return key;
+}
+
+/**
+ * Cria um cliente do Gemini com a key informada (use resolveApiKey para obtê-la).
+ */
+export function createGenAI(apiKey: string): GoogleGenAI {
+  if (!apiKey) throw new Error("API key do Gemini ausente");
   return new GoogleGenAI({ apiKey });
 }

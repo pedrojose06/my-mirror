@@ -3,6 +3,7 @@ import { Stack } from "expo-router";
 import { StatusBar } from "expo-status-bar";
 import { useAppStore } from "../src/state/useAppStore";
 import { COLORS } from "../src/constants";
+import { setupPWA } from "../src/pwa";
 
 export default function RootLayout() {
   const loadProfile = useAppStore((s) => s.loadProfile);
@@ -13,6 +14,7 @@ export default function RootLayout() {
     loadProfile();
     loadQuota();
     initAuth();
+    setupPWA(); // no-op fora do navegador
   }, []);
 
   return (
