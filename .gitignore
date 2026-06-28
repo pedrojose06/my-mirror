@@ -6,9 +6,12 @@ dist/
 *.log
 .expo/
 .claude/
+.idea/
 ios/
 android/
 
 # Binários de release (não versionar)
 *.aab
 *.apk
+
+CLAUDE.md

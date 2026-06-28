@@ -2,7 +2,7 @@
   "expo": {
     "name": "Luxai",
     "slug": "espelhoia",
-    "version": "0.2.1",
+    "version": "0.2.2",
     "orientation": "portrait",
     "userInterfaceStyle": "dark",
     "icon": "./assets/brand/icon.png",
@@ -16,7 +16,7 @@
     },
     "android": {
       "package": "com.luxai.app",
-      "versionCode": 20,
+      "versionCode": 23,
       "softwareKeyboardLayoutMode": "resize",
       "adaptiveIcon": {
         "foregroundImage": "./assets/brand/adaptive-icon.png",
@@ -46,7 +46,8 @@
       ],
       "react-native-fast-tflite",
       "expo-audio",
-      "expo-web-browser"
+      "expo-web-browser",
+      "./plugins/withRemoveForegroundService"
     ],
     "web": {
       "bundler": "metro",
