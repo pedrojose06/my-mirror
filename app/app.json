@@ -48,6 +48,11 @@
       "expo-audio",
       "expo-web-browser"
     ],
+    "web": {
+      "bundler": "metro",
+      "output": "single",
+      "favicon": "./assets/brand/icon.png"
+    },
     "scheme": "luxai",
     "experiments": {
       "typedRoutes": true
