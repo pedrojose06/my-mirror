@@ -1,5 +1,6 @@
 import { createAudioPlayer, setAudioModeAsync, AudioPlayer } from "expo-audio";
 import * as Speech from "expo-speech";
+import { Platform } from "react-native";
 import { API_BASE_URL } from "../constants";
 import { supabase } from "./supabase";
 
@@ -48,12 +49,38 @@ export async function speak(text: string, onStart?: () => void): Promise<void> {
     return;
   }
 
-  try {
-    const url = `${API_BASE_URL}/api/speak?text=${encodeURIComponent(text)}`;
-    const player = createAudioPlayer({
-      uri: url,
+  // Fonte do áudio com auth. No NATIVO o player manda o header Authorization
+  // (streaming GET). Na WEB o <audio> não envia headers, então buscamos o WAV
+  // completo via fetch (POST, com token) e tocamos por data URI.
+  let source: { uri: string; headers?: Record<string, string> };
+  if (Platform.OS === "web") {
+    try {
+      const r = await fetch(`${API_BASE_URL}/api/speak`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({ text }),
+      });
+      if (!r.ok) throw new Error(`speak ${r.status}`);
+      const { audioBase64 } = await r.json();
+      source = { uri: `data:audio/wav;base64,${audioBase64}` };
+    } catch (err) {
+      console.warn("[voice] neural web falhou, voz do sistema:", err);
+      if (myToken === playToken) fallback();
+      else fireStart();
+      return;
+    }
+  } else {
+    source = {
+      uri: `${API_BASE_URL}/api/speak?text=${encodeURIComponent(text)}`,
       headers: { Authorization: `Bearer ${token}` },
-    });
+    };
+  }
+
+  try {
+    const player = createAudioPlayer(source);
     activePlayer = player;
 
     const sub = player.addListener("playbackStatusUpdate", (s: any) => {
