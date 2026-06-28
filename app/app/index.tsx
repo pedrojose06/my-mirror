@@ -194,14 +194,11 @@ function CameraScreen({
         frameProcessor={frameProcessor}
       />
 
-      {/* Fundo de marca enquanto câmera está inativa. O overlay opaco já
-          esconde o feed na abertura (exigência do Play), então a câmera fica
-          sempre ativa enquanto a tela está focada — alternar isActive
-          false→true deixa o preview preto no Android (bug do vision-camera).
-          ponytail: overlay esconde o feed; não desativar a câmera junto. */}
-      {mode === "idle" && (
-        <View style={[StyleSheet.absoluteFill, styles.idleBackground]} />
-      )}
+      {/* App de espelho: o feed da câmera fica sempre visível enquanto a tela
+          está focada. isActive não alterna false→true (isso deixa o preview
+          preto no Android — bug do vision-camera). Não cobrir o feed com um
+          fundo opaco no idle: era essa cobertura que dava a "câmera preta".
+          ponytail: feed sempre à mostra; só a UI fica por cima. */}
 
       <View style={styles.overlay}>
         {/* Marca: ISOLOGO centralizado no topo */}
@@ -420,7 +417,6 @@ const styles = StyleSheet.create({
     fontWeight: "700",
     letterSpacing: 2,
   },
-  idleBackground: { backgroundColor: COLORS.background },
   evaluatingIndicator: { alignItems: "center", gap: SPACING.sm },
   evaluatingText: {
     color: COLORS.accent,

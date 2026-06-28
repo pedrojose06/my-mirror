@@ -2,7 +2,7 @@
   "expo": {
     "name": "Luxai",
     "slug": "espelhoia",
-    "version": "0.2.3",
+    "version": "0.2.4",
     "orientation": "portrait",
     "userInterfaceStyle": "dark",
     "icon": "./assets/brand/icon.png",
@@ -16,7 +16,7 @@
     },
     "android": {
       "package": "com.luxai.app",
-      "versionCode": 24,
+      "versionCode": 25,
       "softwareKeyboardLayoutMode": "resize",
       "adaptiveIcon": {
         "foregroundImage": "./assets/brand/adaptive-icon.png",
