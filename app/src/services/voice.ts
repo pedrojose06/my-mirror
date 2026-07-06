@@ -33,6 +33,10 @@ export async function speak(text: string, onStart?: () => void): Promise<void> {
     fireStart();
   };
 
+  // Para qualquer fala anterior — inclusive a voz do sistema (fallback). Sem
+  // isso, se a fala anterior caiu no Speech.speak, ela continuaria tocando
+  // junto com a nova voz neural (duas vozes ao mesmo tempo).
+  Speech.stop();
   if (activePlayer) {
     try {
       activePlayer.remove();
@@ -101,13 +105,19 @@ export async function speak(text: string, onStart?: () => void): Promise<void> {
 
     // Se nada começou a tocar a tempo (rede/erro), usa a voz do sistema.
     setTimeout(() => {
-      if (!startFired && myToken === playToken) {
-        try {
-          sub.remove();
-          player.remove();
-        } catch {}
-        fallback();
+      if (startFired || myToken !== playToken) return;
+      // A voz neural pode já estar tocando sem o status ter reportado `playing`
+      // a tempo (latência do stream). Nesse caso NÃO cair pro fallback, senão
+      // as duas vozes tocam juntas — só confirma o start.
+      if (player.playing || (player.currentTime ?? 0) > 0) {
+        fireStart();
+        return;
       }
+      try {
+        sub.remove();
+        player.remove();
+      } catch {}
+      fallback();
     }, STREAM_START_TIMEOUT_MS);
   } catch (err) {
     console.warn("[voice] streaming falhou, usando voz do sistema:", err);
