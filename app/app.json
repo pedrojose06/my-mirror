@@ -57,6 +57,12 @@
     "scheme": "luxai",
     "experiments": {
       "typedRoutes": true
+    },
+    "owner": "pedrojose06",
+    "extra": {
+      "eas": {
+        "projectId": "11dde444-29d0-4677-be77-782be492f561"
+      }
     }
   }
 }
