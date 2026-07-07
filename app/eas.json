@@ -18,6 +18,12 @@
     }
   },
   "submit": {
-    "production": {}
+    "production": {
+      "android": {
+        "serviceAccountKeyPath": "C:/Users/pedro/secrets/luxai-500414-d6af4175ac36.json",
+        "track": "internal",
+        "releaseStatus": "draft"
+      }
+    }
   }
 }
